@@ -52,8 +52,8 @@ export function exportToCsv(products: Product[]): Blob {
         product.description || '',
         variant.code,
         variant.dimensions || '',
-        variant.weight || '',
-        variant.cubic || '',
+        variant.weight ? String(variant.weight) : '',
+        variant.cubic ? String(variant.cubic) : '',
         variant.ncm || '',
         pricesStr,
       ])
@@ -86,8 +86,8 @@ export function exportSingleProductToCsv(product: Product): Blob {
       product.description || '',
       variant.code,
       variant.dimensions || '',
-      variant.weight || '',
-      variant.cubic || '',
+      variant.weight ? String(variant.weight) : '',
+      variant.cubic ? String(variant.cubic) : '',
       variant.ncm || '',
       pricesStr,
     ])

@@ -13,7 +13,6 @@ import {
   LoadMoreButton,
   ProductExportModal,
 } from '@/components/features/products'
-import { countTotalVariants } from '@/lib/utils'
 
 export function ProductsPage() {
   const { uploadId } = useParams<{ uploadId: string }>()
@@ -54,9 +53,6 @@ export function ProductsPage() {
   // Verificar se todos os visíveis estão selecionados
   const allVisibleSelected =
     visibleProducts.length > 0 && visibleProducts.every((p) => selectedProducts.has(p.id))
-
-  // Contar variantes
-  const totalVariants = countTotalVariants(products)
 
   // Handler de exportação do modal
   const onModalExport = async (format: any) => {

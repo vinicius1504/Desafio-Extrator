@@ -2,7 +2,7 @@
  * Utilitários de validação
  */
 
-import { FILE_VALIDATION, COLUMN_VALIDATION, ERROR_MESSAGES } from '@/constants'
+import { FILE_VALIDATION, ERROR_MESSAGES } from '@/constants'
 import { validateColumnIndex } from './columnUtils'
 
 /**
@@ -39,7 +39,7 @@ export function validateFileFormat(file: File): ValidationResult {
     fileName.endsWith(ext.toLowerCase())
   )
 
-  const hasValidMimeType = FILE_VALIDATION.ACCEPTED_MIME_TYPES.includes(file.type)
+  const hasValidMimeType = FILE_VALIDATION.ACCEPTED_MIME_TYPES.includes(file.type as any)
 
   if (!hasValidExtension && !hasValidMimeType) {
     return {
