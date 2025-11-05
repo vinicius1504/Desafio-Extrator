@@ -142,7 +142,7 @@ export function UserForm({ isOpen, onClose, user, onSuccess }: UserFormProps) {
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {(error || validationError) && (
-          <Alert variant="error">{error || validationError}</Alert>
+          <Alert type="error">{error || validationError}</Alert>
         )}
 
         <div>

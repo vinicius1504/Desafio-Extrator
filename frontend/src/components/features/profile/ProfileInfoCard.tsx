@@ -80,13 +80,13 @@ export function ProfileInfoCard() {
 
       <CardContent>
         {successMessage && (
-          <Alert variant="success" className="mb-4">
+          <Alert type="success" className="mb-4">
             {successMessage}
           </Alert>
         )}
 
         {error && (
-          <Alert variant="error" className="mb-4">
+          <Alert type="error" className="mb-4">
             {error}
           </Alert>
         )}

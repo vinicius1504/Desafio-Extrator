@@ -76,13 +76,13 @@ export function ChangePasswordCard() {
 
       <CardContent>
         {successMessage && (
-          <Alert variant="success" className="mb-4">
+          <Alert type="success" className="mb-4">
             {successMessage}
           </Alert>
         )}
 
         {(error || validationError) && (
-          <Alert variant="error" className="mb-4">
+          <Alert type="error" className="mb-4">
             {error || validationError}
           </Alert>
         )}

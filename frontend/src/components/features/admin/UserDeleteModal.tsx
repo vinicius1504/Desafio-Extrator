@@ -55,7 +55,7 @@ export function UserDeleteModal({ isOpen, onClose, user, onSuccess }: UserDelete
           </div>
         </div>
 
-        {error && <Alert variant="error">{error}</Alert>}
+        {error && <Alert type="error">{error}</Alert>}
 
         {user && (
           <div className="space-y-3">

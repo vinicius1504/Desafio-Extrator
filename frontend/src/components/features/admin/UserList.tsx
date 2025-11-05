@@ -76,7 +76,9 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
         <div className="flex items-center space-x-2">
           <span className="font-medium">{value}</span>
           {user.is_admin && (
-            <Shield className="h-4 w-4 text-purple-500" title="Administrador" />
+            <span title="Administrador">
+              <Shield className="h-4 w-4 text-purple-500" />
+            </span>
           )}
         </div>
       ),
@@ -196,7 +198,7 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
 
       <CardContent>
         {error && (
-          <Alert variant="error" className="mb-4">
+          <Alert type="error" className="mb-4">
             {error}
           </Alert>
         )}
