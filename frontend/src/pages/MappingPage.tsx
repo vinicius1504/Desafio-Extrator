@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, CardHeader, CardTitle, CardContent, Button, Alert, Select } from '@/components/ui'
-import { Save, ArrowRight } from 'lucide-react'
+import { Save, ArrowRight, Sparkles, FileSpreadsheet, Zap, Grid, DollarSign, ChevronDown, ChevronUp } from 'lucide-react'
 import { useSpreadsheetStore } from '@/store/spreadsheetStore'
 import { spreadsheetAPI, columnMappingAPI } from '@/lib/api'
 import { useColumnMapping, usePreview } from '@/hooks'
@@ -21,6 +21,7 @@ export function MappingPage() {
   const [saving, setSaving] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   // Hooks customizados
   const {
@@ -84,7 +85,6 @@ export function MappingPage() {
         }
       } catch (err) {
         // Sem mapeamento existente, tudo bem
-        console.log('Nenhum mapeamento existente encontrado')
       }
     }
 
@@ -262,13 +262,41 @@ export function MappingPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Mapeamento de Colunas</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Configure quais colunas da planilha correspondem a cada campo do produto
-        </p>
+    <div className="max-w-7xl mx-auto space-y-8">
+      {/* Header com botão de ação */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="text-center lg:text-left space-y-3">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800">
+            <Sparkles className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <span className="text-sm font-medium text-green-700 dark:text-green-300">Configuração Inteligente</span>
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">Mapeamento de Colunas</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Configure quais colunas da planilha correspondem a cada campo do produto
+          </p>
+        </div>
+
+        {/* Botão de Processar - Posição de destaque */}
+        <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
+          <Button
+            variant="outline"
+            onClick={handleSaveMapping}
+            disabled={saving || !isValid}
+            className="h-12 px-6 font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+          >
+            <Save className="h-5 w-5 mr-2" />
+            {saving ? 'Salvando...' : 'Salvar'}
+          </Button>
+
+          <Button
+            onClick={handleProcessAndContinue}
+            disabled={processing || !isValid}
+            className="h-12 px-8 font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]"
+          >
+            {processing ? 'Processando...' : 'Processar e Continuar'}
+            <ArrowRight className="h-5 w-5 ml-2" />
+          </Button>
+        </div>
       </div>
 
       {/* Error Alert */}
@@ -291,38 +319,71 @@ export function MappingPage() {
         </Alert>
       )}
 
-      {/* Preview no topo */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Preview da Planilha</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {preview ? (
-            <SpreadsheetPreview preview={preview} />
-          ) : (
-            <div className="text-center py-8 text-gray-500">Nenhum preview disponível</div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Auto Mapping Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Mapeamento Rápido</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AutoMappingForm onApply={handleAutoMapping} />
-        </CardContent>
-      </Card>
-
+      {/* Preview e Mapeamento Rápido lado a lado */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Mapping Form */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Campos Básicos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        {/* Preview */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 px-6 py-4">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5" />
+              Preview da Planilha
+            </h2>
+          </div>
+          <div className="p-6">
+            {preview ? (
+              <SpreadsheetPreview preview={preview} />
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">Nenhum preview disponível</div>
+            )}
+          </div>
+        </div>
+
+        {/* Auto Mapping Form */}
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg border border-amber-200 dark:border-gray-700 overflow-hidden">
+          <div className="px-6 py-4 border-b border-amber-200 dark:border-gray-700">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <Zap className="h-5 w-5 text-amber-600 dark:text-amber-500" />
+              Mapeamento Rápido
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Configure automaticamente todas as colunas de uma vez
+            </p>
+          </div>
+          <div className="p-6">
+            <AutoMappingForm onApply={handleAutoMapping} />
+          </div>
+        </div>
+      </div>
+
+      {/* Toggle Detalhes Avançados */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <button
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
+              <Grid className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <div className="text-left">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                Mapeamento de Campos
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Configure código, descrição e campos adicionais
+              </p>
+            </div>
+          </div>
+          {showAdvanced ? (
+            <ChevronUp className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+          )}
+        </button>
+
+        {showAdvanced && (
+          <div className="border-t border-gray-200 dark:border-gray-700">
+            <div className="p-6 space-y-4">
               {BASIC_COLUMN_FIELDS.map((field) => (
                 <ColumnSelector
                   key={field.key}
@@ -355,53 +416,41 @@ export function MappingPage() {
                   helpText={field.helpText}
                 />
               ))}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </div>
+        )}
+      </div>
 
-        {/* Price Columns */}
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Colunas de Preço</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PriceColumnList
-                priceColumns={priceColumns}
-                onAdd={() => addPriceColumn('', 0)}
-                onRemove={removePriceColumn}
-                onUpdateName={(index, name) =>
-                  updatePriceColumn(index, name, priceColumns[index].column)
+      {/* Price Columns */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 px-6 py-4">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Colunas de Preço
+          </h2>
+          <p className="text-sm text-green-100 dark:text-green-200 mt-1">
+            Adicione até 3 colunas de preço diferentes
+          </p>
+        </div>
+        <div className="p-6">
+          <PriceColumnList
+            priceColumns={priceColumns}
+            onAdd={() => addPriceColumn('', 0)}
+            onRemove={removePriceColumn}
+            onUpdateName={(index, name) =>
+              updatePriceColumn(index, name, priceColumns[index].column)
+            }
+            onUpdateColumn={(index, input) => {
+              parseAndSetColumn((col) => {
+                if (col !== null) {
+                  updatePriceColumn(index, priceColumns[index].name, col)
                 }
-                onUpdateColumn={(index, input) => {
-                  parseAndSetColumn((col) => {
-                    if (col !== null) {
-                      updatePriceColumn(index, priceColumns[index].name, col)
-                    }
-                  }, input)
-                }}
-              />
-            </CardContent>
-          </Card>
+              }, input)
+            }}
+          />
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex gap-3">
-        <Button variant="outline" onClick={handleSaveMapping} disabled={saving || !isValid}>
-          <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Salvando...' : 'Salvar Mapeamento'}
-        </Button>
-
-        <Button
-          onClick={handleProcessAndContinue}
-          disabled={processing || !isValid}
-          className="flex-1"
-        >
-          {processing ? 'Processando...' : 'Processar e Continuar'}
-          <ArrowRight className="h-4 w-4 ml-2" />
-        </Button>
-      </div>
     </div>
   )
 }

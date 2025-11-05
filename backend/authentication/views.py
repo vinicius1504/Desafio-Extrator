@@ -208,11 +208,6 @@ class UserCreateView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # Se for admin, pode definir se o novo usuário também é admin
-        if request.data.get('is_admin'):
-            user.is_admin = True
-            user.save()
-
         return Response({
             'user': UserManagementSerializer(user).data,
             'message': 'Usuário criado com sucesso'

@@ -7,6 +7,7 @@ import { UploadPage } from './pages/UploadPage'
 import { MappingPage } from './pages/MappingPage'
 import { ProductsPage } from './pages/ProductsPage'
 import { LoginPage } from './pages/LoginPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { ErrorPage } from './pages/ErrorPage'
 
@@ -60,6 +61,16 @@ function App() {
                     <RouteGuard validate={validateUploadId}>
                       <ProductsPage />
                     </RouteGuard>
+                  </PrivateRoute>
+                }
+              />
+
+              {/* Profile - Private */}
+              <Route
+                path="/profile"
+                element={
+                  <PrivateRoute>
+                    <ProfilePage />
                   </PrivateRoute>
                 }
               />

@@ -33,12 +33,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         required=True,
         style={'input_type': 'password'}
     )
+    is_admin = serializers.BooleanField(
+        required=False,
+        default=False
+    )
 
     class Meta:
         model = User
         fields = [
             'username', 'email', 'password', 'password_confirm',
-            'first_name', 'last_name'
+            'first_name', 'last_name', 'is_admin'
         ]
 
     def validate(self, attrs):
@@ -52,6 +56,8 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Cria um novo usuário"""
         validated_data.pop('password_confirm')
+        is_admin = validated_data.pop('is_admin', False)
+
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
@@ -59,6 +65,12 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', ''),
         )
+
+        # Definir is_admin se fornecido
+        if is_admin:
+            user.is_admin = True
+            user.save()
+
         return user
 
 
