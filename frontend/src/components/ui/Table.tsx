@@ -47,17 +47,17 @@ export function Table<T = any>({
 
   return (
     <div className="overflow-x-auto">
-      <table className={`w-full ${bordered ? 'border border-gray-200' : ''}`}>
+      <table className={`w-full ${bordered ? 'border border-gray-200 dark:border-gray-700' : ''}`}>
         <thead>
-          <tr className="bg-gray-50 border-b border-gray-200">
+          <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
             {columns.map((column) => (
               <th
                 key={column.key}
                 className={`
                   ${compact ? 'px-3 py-2' : 'px-6 py-3'}
-                  text-xs font-medium text-gray-700 uppercase tracking-wider
+                  text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider
                   ${getAlignClass(column.align)}
-                  ${bordered ? 'border-r border-gray-200 last:border-r-0' : ''}
+                  ${bordered ? 'border-r border-gray-200 dark:border-gray-700 last:border-r-0' : ''}
                 `}
                 style={{ width: column.width }}
               >
@@ -66,12 +66,12 @@ export function Table<T = any>({
             ))}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
           {data.length === 0 ? (
             <tr>
               <td
                 colSpan={columns.length}
-                className="px-6 py-12 text-center text-gray-500"
+                className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
               >
                 {emptyMessage}
               </td>
@@ -81,8 +81,8 @@ export function Table<T = any>({
               <tr
                 key={keyExtractor(row, index)}
                 className={`
-                  ${striped && index % 2 === 1 ? 'bg-gray-50' : ''}
-                  ${hoverable ? 'hover:bg-gray-100 transition-colors' : ''}
+                  ${striped && index % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800' : ''}
+                  ${hoverable ? 'hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors' : ''}
                 `}
               >
                 {columns.map((column) => (
@@ -90,9 +90,9 @@ export function Table<T = any>({
                     key={column.key}
                     className={`
                       ${compact ? 'px-3 py-2' : 'px-6 py-4'}
-                      text-sm text-gray-900
+                      text-sm text-gray-900 dark:text-gray-100
                       ${getAlignClass(column.align)}
-                      ${bordered ? 'border-r border-gray-200 last:border-r-0' : ''}
+                      ${bordered ? 'border-r border-gray-200 dark:border-gray-700 last:border-r-0' : ''}
                     `}
                   >
                     {getCellValue(column, row, index)}

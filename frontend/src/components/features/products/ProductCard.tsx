@@ -58,17 +58,17 @@ export function ProductCard({
             <div className="flex-1 min-w-0 cursor-pointer" onClick={onToggleExpand}>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     {product.description || '(Sem descrição)'}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     {product.variants.length} variante(s)
                   </p>
                 </div>
               </div>
 
               {/* Quick Info */}
-              <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-600">
+              <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
                 {mainVariant.weight && <span>Peso: {mainVariant.weight}kg</span>}
                 {mainVariant.cubic && <span>Cubagem: {mainVariant.cubic}m³</span>}
                 {mainVariant.ncm && <span>NCM: {mainVariant.ncm}</span>}
@@ -78,8 +78,8 @@ export function ProductCard({
               {mainVariant.prices && Object.keys(mainVariant.prices).length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-3">
                   {Object.entries(mainVariant.prices).map(([name, price]) => (
-                    <div key={name} className="px-3 py-1 bg-primary-50 rounded-full">
-                      <span className="text-sm font-medium text-primary-700">
+                    <div key={name} className="px-3 py-1 bg-primary-50 dark:bg-primary-900 rounded-full">
+                      <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
                         {name}: R$ {formatPrice(price)}
                       </span>
                     </div>
@@ -90,17 +90,17 @@ export function ProductCard({
 
             {/* Download Buttons */}
             <div className="flex flex-col gap-2">
-              <div className="text-xs text-gray-500 mb-1">Baixar:</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Baixar:</div>
               <button
                 onClick={(e) => {
                   e.stopPropagation()
                   onExport('json')
                 }}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Baixar em JSON"
               >
-                <FileJson className="h-4 w-4 text-blue-600" />
+                <FileJson className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <span>JSON</span>
               </button>
               <button
@@ -109,10 +109,10 @@ export function ProductCard({
                   onExport('csv')
                 }}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Baixar em CSV"
               >
-                <FileText className="h-4 w-4 text-green-600" />
+                <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
                 <span>CSV</span>
               </button>
               <button
@@ -121,10 +121,10 @@ export function ProductCard({
                   onExport('xml')
                 }}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Baixar em XML"
               >
-                <FileCode className="h-4 w-4 text-orange-600" />
+                <FileCode className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                 <span>XML</span>
               </button>
             </div>

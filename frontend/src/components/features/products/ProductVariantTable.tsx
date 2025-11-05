@@ -12,8 +12,8 @@ export interface ProductVariantTableProps {
 
 export function ProductVariantTable({ variants }: ProductVariantTableProps) {
   return (
-    <div className="border-t border-gray-200 p-6 bg-gray-50">
-      <h4 className="font-semibold text-gray-900 mb-4">Variantes</h4>
+    <div className="border-t border-gray-200 dark:border-gray-700 p-6 bg-gray-50 dark:bg-gray-800">
+      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Variantes</h4>
       <Table
         columns={[
           { key: 'code', header: 'Código', width: '120px' },

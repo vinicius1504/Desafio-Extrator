@@ -22,14 +22,17 @@ export function PriceColumnList({
   onUpdateName,
   onUpdateColumn,
 }: PriceColumnListProps) {
+  const MAX_PRICE_COLUMNS = 3
+  const canAddMore = priceColumns.length < MAX_PRICE_COLUMNS
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
-        Colunas de Preço
+        Colunas de Preço (máximo {MAX_PRICE_COLUMNS})
       </label>
 
       <div className="space-y-3">
-        {priceColumns.map((priceCol, index) => (
+        {priceColumns.slice(0, MAX_PRICE_COLUMNS).map((priceCol, index) => (
           <div key={index} className="flex gap-2">
             <div className="flex-1">
               <Input
@@ -58,14 +61,14 @@ export function PriceColumnList({
           </div>
         ))}
 
-        <Button variant="outline" onClick={onAdd} className="w-full">
+        <Button variant="outline" onClick={onAdd} className="w-full" disabled={!canAddMore}>
           <Plus className="h-4 w-4 mr-2" />
           Adicionar Coluna de Preço
         </Button>
       </div>
 
       <p className="mt-2 text-xs text-gray-500">
-        Adicione múltiplas colunas de preço (ex: Atacado, Varejo, Revenda)
+        Adicione até {MAX_PRICE_COLUMNS} colunas de preço (ex: Atacado, Varejo, Revenda)
       </p>
     </div>
   )

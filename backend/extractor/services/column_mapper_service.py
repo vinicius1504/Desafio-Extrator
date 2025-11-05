@@ -383,7 +383,8 @@ class ColumnMapperService:
         # REMOVER DUPLICATAS - manter apenas a última ocorrência de cada nome
         price_columns = self._remove_duplicate_price_columns(price_columns)
 
-        return price_columns
+        # LIMITAR A 3 COLUNAS DE PREÇO
+        return price_columns[:3]
 
     def _remove_duplicate_price_columns(self, price_columns: List[Dict]) -> List[Dict]:
         """

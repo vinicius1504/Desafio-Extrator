@@ -62,6 +62,13 @@ class ColumnMappingSerializer(serializers.ModelSerializer):
 
             # Validar price_columns
             price_columns = data.get('price_columns', [])
+
+            # LIMITAR A 3 COLUNAS DE PREÇO
+            if len(price_columns) > 3:
+                raise serializers.ValidationError({
+                    'price_columns': 'Máximo de 3 colunas de preço permitidas'
+                })
+
             if price_columns:
                 for idx, price_col in enumerate(price_columns):
                     if not isinstance(price_col, dict):

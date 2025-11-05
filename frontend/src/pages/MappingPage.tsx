@@ -9,8 +9,9 @@ import { Save, ArrowRight } from 'lucide-react'
 import { useSpreadsheetStore } from '@/store/spreadsheetStore'
 import { spreadsheetAPI, columnMappingAPI } from '@/lib/api'
 import { useColumnMapping, usePreview } from '@/hooks'
-import { ColumnSelector, PriceColumnList, SpreadsheetPreview } from '@/components/features/mapping'
-import { BASIC_COLUMN_FIELDS, GROUPING_OPTIONS } from '@/constants'
+import { ColumnSelector, PriceColumnList, SpreadsheetPreview, AutoMappingForm } from '@/components/features/mapping'
+import { BASIC_COLUMN_FIELDS } from '@/constants'
+import { parseColumnInput } from '@/lib/utils'
 
 export function MappingPage() {
   const { uploadId } = useParams<{ uploadId: string }>()
@@ -36,14 +37,12 @@ export function MappingPage() {
     cubicColumn,
     ncmColumn,
     priceColumns,
-    groupBy,
     setCodeColumn,
     setDescriptionColumn,
     setDimensionsColumn,
     setWeightColumn,
     setCubicColumn,
     setNcmColumn,
-    setGroupBy,
     addPriceColumn,
     removePriceColumn,
     updatePriceColumn,
@@ -65,10 +64,13 @@ export function MappingPage() {
         const mapping = await columnMappingAPI.getMappingByUpload(Number(uploadId))
         if (mapping) {
           // Converter price_columns do backend (index, name) para o formato do hook (name, column)
-          const priceColumnsConverted = (mapping.price_columns || []).map((pc: any) => ({
-            name: pc.name,
-            column: pc.index,
-          }))
+          // LIMITAR A 3 COLUNAS DE PREÇO
+          const priceColumnsConverted = (mapping.price_columns || [])
+            .slice(0, 3)
+            .map((pc: any) => ({
+              name: pc.name,
+              column: pc.index,
+            }))
 
           setMapping({
             code: mapping.code_column ?? null,
@@ -78,7 +80,6 @@ export function MappingPage() {
             cubic: mapping.cubic_column ?? null,
             ncm: mapping.ncm_column ?? null,
             priceColumns: priceColumnsConverted,
-            groupBy: 'code',
           })
         }
       } catch (err) {
@@ -108,7 +109,8 @@ export function MappingPage() {
       setLocalError(null)
 
       // Converter price_columns para o formato do backend (index, name)
-      const priceColumnsBackend = priceColumns.map(pc => ({
+      // LIMITAR A 3 COLUNAS DE PREÇO
+      const priceColumnsBackend = priceColumns.slice(0, 3).map(pc => ({
         index: pc.column,
         name: pc.name,
       }))
@@ -151,7 +153,8 @@ export function MappingPage() {
       setLocalError(null)
 
       // Converter price_columns para o formato do backend (index, name)
-      const priceColumnsBackend = priceColumns.map(pc => ({
+      // LIMITAR A 3 COLUNAS DE PREÇO
+      const priceColumnsBackend = priceColumns.slice(0, 3).map(pc => ({
         index: pc.column,
         name: pc.name,
       }))
@@ -184,11 +187,75 @@ export function MappingPage() {
     }
   }
 
+  const handleAutoMapping = (startCol: string, endCol: string, startRow: string) => {
+    const startRowNum = parseInt(startRow, 10)
+
+    // Validate row
+    if (isNaN(startRowNum) || startRowNum < 1) {
+      setLocalError('Por favor, insira uma linha inicial válida (mínimo 1)')
+      return
+    }
+
+    // Parse start and end columns
+    const startColIndex = parseColumnInput(startCol.trim())
+    const endColIndex = parseColumnInput(endCol.trim())
+
+    if (startColIndex === null || endColIndex === null) {
+      setLocalError('Por favor, insira colunas válidas (ex: A, B, C ou 0, 1, 2)')
+      return
+    }
+
+    if (startColIndex > endColIndex) {
+      setLocalError('A coluna inicial deve ser menor ou igual à coluna final')
+      return
+    }
+
+    // Build array of column indices from start to end
+    const columns: number[] = []
+    for (let i = startColIndex; i <= endColIndex; i++) {
+      columns.push(i)
+    }
+
+    // Map columns in order: Code, Description, Dimensions, Cubic, Weight, NCM
+    // Then remaining columns as prices (max 3)
+    let idx = 0
+    const newMapping: any = {
+      code: idx < columns.length ? columns[idx++] : null,
+      description: idx < columns.length ? columns[idx++] : null,
+      dimensions: idx < columns.length ? columns[idx++] : null,
+      cubic: idx < columns.length ? columns[idx++] : null,
+      weight: idx < columns.length ? columns[idx++] : null,
+      ncm: idx < columns.length ? columns[idx++] : null,
+      priceColumns: [],
+    }
+
+    // Code column is required
+    if (newMapping.code === null) {
+      setLocalError('É necessário pelo menos uma coluna para o código')
+      return
+    }
+
+    // Add price columns from remaining columns (máximo 3)
+    let priceIdx = 1
+    while (idx < columns.length && priceIdx <= 3) {
+      newMapping.priceColumns.push({
+        name: `Preço ${priceIdx}`,
+        column: columns[idx],
+      })
+      idx++
+      priceIdx++
+    }
+
+    // Apply the new mapping
+    setMapping(newMapping)
+    setLocalError(null)
+  }
+
   if (loadingPreview) {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="text-center py-12">
-          <p className="text-gray-500">Carregando preview...</p>
+          <p className="text-gray-500 dark:text-gray-400">Carregando preview...</p>
         </div>
       </div>
     )
@@ -198,8 +265,8 @@ export function MappingPage() {
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Mapeamento de Colunas</h1>
-        <p className="text-gray-600">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Mapeamento de Colunas</h1>
+        <p className="text-gray-600 dark:text-gray-400">
           Configure quais colunas da planilha correspondem a cada campo do produto
         </p>
       </div>
@@ -223,6 +290,30 @@ export function MappingPage() {
           Há colunas duplicadas no mapeamento. Cada coluna deve ser usada apenas uma vez.
         </Alert>
       )}
+
+      {/* Preview no topo */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Preview da Planilha</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {preview ? (
+            <SpreadsheetPreview preview={preview} />
+          ) : (
+            <div className="text-center py-8 text-gray-500">Nenhum preview disponível</div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Auto Mapping Form */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Mapeamento Rápido</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AutoMappingForm onApply={handleAutoMapping} />
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Mapping Form */}
@@ -266,7 +357,10 @@ export function MappingPage() {
               ))}
             </CardContent>
           </Card>
+        </div>
 
+        {/* Price Columns */}
+        <div>
           <Card>
             <CardHeader>
               <CardTitle>Colunas de Preço</CardTitle>
@@ -289,59 +383,24 @@ export function MappingPage() {
               />
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Agrupamento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select
-                value={groupBy}
-                onChange={(e) => setGroupBy(e.target.value)}
-                options={GROUPING_OPTIONS.map((opt) => ({
-                  value: opt.value,
-                  label: opt.label,
-                }))}
-              />
-              <p className="mt-2 text-xs text-gray-500">
-                Define como os produtos serão agrupados
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Actions */}
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={handleSaveMapping} disabled={saving || !isValid}>
-              <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Salvando...' : 'Salvar Mapeamento'}
-            </Button>
-
-            <Button
-              onClick={handleProcessAndContinue}
-              disabled={processing || !isValid}
-              className="flex-1"
-            >
-              {processing ? 'Processando...' : 'Processar e Continuar'}
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </div>
         </div>
+      </div>
 
-        {/* Preview */}
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Preview da Planilha</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {preview ? (
-                <SpreadsheetPreview preview={preview} />
-              ) : (
-                <div className="text-center py-8 text-gray-500">Nenhum preview disponível</div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+      {/* Actions */}
+      <div className="flex gap-3">
+        <Button variant="outline" onClick={handleSaveMapping} disabled={saving || !isValid}>
+          <Save className="h-4 w-4 mr-2" />
+          {saving ? 'Salvando...' : 'Salvar Mapeamento'}
+        </Button>
+
+        <Button
+          onClick={handleProcessAndContinue}
+          disabled={processing || !isValid}
+          className="flex-1"
+        >
+          {processing ? 'Processando...' : 'Processar e Continuar'}
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
       </div>
     </div>
   )

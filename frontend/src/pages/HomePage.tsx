@@ -6,10 +6,10 @@ export function HomePage() {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-gray-900">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
           Bem-vindo ao Extrator de Planilhas
         </h1>
-        <p className="text-xl text-gray-600">
+        <p className="text-xl text-gray-600 dark:text-gray-400">
           Importe, mapeie e processe suas planilhas de forma eficiente
         </p>
       </div>
@@ -17,12 +17,12 @@ export function HomePage() {
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="pt-6 text-center space-y-4">
-            <div className="mx-auto w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-              <Upload className="h-6 w-6 text-primary-600" />
+            <div className="mx-auto w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+              <Upload className="h-6 w-6 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg mb-2">1. Upload</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-gray-100">1. Upload</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Faça upload da sua planilha Excel ou CSV
               </p>
             </div>
@@ -31,12 +31,12 @@ export function HomePage() {
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="pt-6 text-center space-y-4">
-            <div className="mx-auto w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-              <FileSpreadsheet className="h-6 w-6 text-primary-600" />
+            <div className="mx-auto w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+              <FileSpreadsheet className="h-6 w-6 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg mb-2">2. Mapeamento</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-gray-100">2. Mapeamento</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Mapeie as colunas da sua planilha
               </p>
             </div>
@@ -45,12 +45,12 @@ export function HomePage() {
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="pt-6 text-center space-y-4">
-            <div className="mx-auto w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-              <Database className="h-6 w-6 text-primary-600" />
+            <div className="mx-auto w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+              <Database className="h-6 w-6 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg mb-2">3. Processamento</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-gray-100">3. Processamento</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Extraia e organize os dados automaticamente
               </p>
             </div>
@@ -59,12 +59,12 @@ export function HomePage() {
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="pt-6 text-center space-y-4">
-            <div className="mx-auto w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-              <Download className="h-6 w-6 text-primary-600" />
+            <div className="mx-auto w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+              <Download className="h-6 w-6 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg mb-2">4. Export</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-gray-100">4. Export</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Exporte em JSON, CSV ou XML
               </p>
             </div>
@@ -78,7 +78,7 @@ export function HomePage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <p className="text-gray-600 flex-1">
+            <p className="text-gray-600 dark:text-gray-400 flex-1">
               Pronto para processar suas planilhas? Faça upload do seu arquivo e comece o processo de extração.
             </p>
             <Link to="/upload" className="shrink-0">
@@ -97,17 +97,17 @@ export function HomePage() {
             <CardTitle>Formatos Suportados</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2">
+            <ul className="space-y-2 text-gray-900 dark:text-gray-100">
               <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
+                <div className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full"></div>
                 <span>Excel (.xlsx, .xls)</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
+                <div className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full"></div>
                 <span>CSV (.csv)</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
+                <div className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full"></div>
                 <span>OpenDocument (.ods)</span>
               </li>
             </ul>
@@ -119,17 +119,17 @@ export function HomePage() {
             <CardTitle>Recursos</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2">
+            <ul className="space-y-2 text-gray-900 dark:text-gray-100">
               <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
+                <div className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full"></div>
                 <span>Mapeamento flexível de colunas</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
+                <div className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full"></div>
                 <span>Múltiplas colunas de preço</span>
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
+                <div className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full"></div>
                 <span>Export em vários formatos</span>
               </li>
             </ul>

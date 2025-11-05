@@ -20,17 +20,17 @@ export function Alert({
   ...props
 }: AlertProps) {
   const styles = {
-    info: 'bg-blue-50 border-blue-200 text-blue-900',
-    success: 'bg-green-50 border-green-200 text-green-900',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-900',
-    error: 'bg-red-50 border-red-200 text-red-900',
+    info: 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200',
+    success: 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-900 dark:text-green-200',
+    warning: 'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800 text-yellow-900 dark:text-yellow-200',
+    error: 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-900 dark:text-red-200',
   }
 
   const icons = {
-    info: <Info className="h-5 w-5 text-blue-600" />,
-    success: <CheckCircle2 className="h-5 w-5 text-green-600" />,
-    warning: <AlertCircle className="h-5 w-5 text-yellow-600" />,
-    error: <XCircle className="h-5 w-5 text-red-600" />,
+    info: <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />,
+    success: <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />,
+    warning: <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />,
+    error: <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />,
   }
 
   return (

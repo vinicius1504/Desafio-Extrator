@@ -71,7 +71,7 @@ export function ProductsPage() {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="text-center py-12">
-          <p className="text-gray-500">Carregando produtos...</p>
+          <p className="text-gray-500 dark:text-gray-400">Carregando produtos...</p>
         </div>
       </div>
     )
@@ -82,8 +82,8 @@ export function ProductsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Produtos Extraídos</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Produtos Extraídos</h1>
+          <p className="text-gray-600 dark:text-gray-400">
             Mostrando {visibleProducts.length} de {filteredProducts.length} produtos
             {filteredProducts.length !== products.length && ` (total: ${products.length})`}
             {selectedProducts.size > 0 && ` • ${selectedProducts.size} selecionado(s)`}
@@ -123,7 +123,7 @@ export function ProductsPage() {
         <Card>
           <CardContent className="py-12">
             <div className="text-center">
-              <p className="text-gray-500">
+              <p className="text-gray-500 dark:text-gray-400">
                 Nenhum produto encontrado. Verifique o mapeamento de colunas.
               </p>
               <Button
@@ -140,7 +140,7 @@ export function ProductsPage() {
         <Card>
           <CardContent className="py-12">
             <div className="text-center">
-              <p className="text-gray-500">Nenhum produto encontrado com os critérios de pesquisa.</p>
+              <p className="text-gray-500 dark:text-gray-400">Nenhum produto encontrado com os critérios de pesquisa.</p>
               <Button variant="outline" onClick={() => setSearchTerm('')} className="mt-4">
                 Limpar Pesquisa
               </Button>

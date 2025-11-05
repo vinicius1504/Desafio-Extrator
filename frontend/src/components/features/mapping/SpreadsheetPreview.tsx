@@ -24,7 +24,7 @@ export function SpreadsheetPreview({ preview }: SpreadsheetPreviewProps) {
   const columns = firstRowData.map((_: any, index: number) => ({
     key: index.toString(),
     header: columnNumberToLetter(index),
-    width: '120px',
+    width: '80px',
     render: (value: any) => value || '-',
   }))
 
@@ -33,10 +33,10 @@ export function SpreadsheetPreview({ preview }: SpreadsheetPreviewProps) {
 
   return (
     <div>
-      <div className="mb-2 text-sm text-gray-600">
+      <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
         Mostrando {preview.rows.length} de {preview.total_rows} linhas
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded">
         <Table
           columns={columns}
           data={tableData}
