@@ -55,37 +55,40 @@ export function Layout({ children }: LayoutProps) {
       {/* Header fixo - Esconder na página de login */}
       {!isLoginPage && (
         <header className="flex-none bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-2 text-xl font-bold text-primary-600 dark:text-primary-400">
-                <FileSpreadsheet className="h-6 w-6" />
-                Extrator de Planilhas
+          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+            <div className="flex items-center justify-between gap-2">
+              {/* Logo - Responsive */}
+              <Link to="/" className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-xl font-bold text-primary-600 dark:text-primary-400 flex-shrink-0">
+                <FileSpreadsheet className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="hidden xs:inline">Extrator de Planilhas</span>
+                <span className="xs:hidden">Extrator</span>
               </Link>
-              <div className="flex items-center gap-4">
+
+              <div className="flex items-center gap-1 sm:gap-4">
                 {/* Menu - apenas se autenticado */}
                 {isAuthenticated && (
-                  <nav className="flex gap-4">
+                  <nav className="flex gap-1 sm:gap-2 md:gap-4">
                     <Link
                       to="/"
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                      className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 rounded-lg transition-colors ${
                         isActive('/')
                           ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium'
                           : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
                     >
                       <FileSpreadsheet className="h-4 w-4" />
-                      Início
+                      <span className="hidden sm:inline text-sm md:text-base">Início</span>
                     </Link>
                     <Link
                       to="/upload"
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                      className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 rounded-lg transition-colors ${
                         isActive('/upload')
                           ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium'
                           : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
                     >
                       <Upload className="h-4 w-4" />
-                      Upload
+                      <span className="hidden sm:inline text-sm md:text-base">Upload</span>
                     </Link>
                   </nav>
                 )}
@@ -95,12 +98,12 @@ export function Layout({ children }: LayoutProps) {
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     >
                       <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium">
                         {user.username.charAt(0).toUpperCase()}
                       </div>
-                      <span>{user.username}</span>
+                      <span className="hidden md:inline">{user.username}</span>
                       <ChevronDown className={`h-4 w-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
 
