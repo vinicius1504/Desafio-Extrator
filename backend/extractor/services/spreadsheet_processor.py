@@ -4,6 +4,7 @@ Serviço para processar planilhas Excel
 import pandas as pd
 from typing import Tuple, Dict, Any
 from extractor.models import SpreadsheetUpload, ColumnMapping, Product, ProductVariant
+from extractor.utils.spreadsheet_detector import get_hidden_columns
 
 
 class SpreadsheetProcessorService:
@@ -13,10 +14,23 @@ class SpreadsheetProcessorService:
         self.upload = upload
         self.mapping = mapping
         self.df = None
+        self.hidden_columns = []
 
     def load_spreadsheet(self) -> pd.DataFrame:
-        """Carrega a planilha Excel em um DataFrame"""
-        self.df = pd.read_excel(self.upload.file.path, header=None)
+        """Carrega a planilha Excel em um DataFrame, ignorando colunas ocultas"""
+        # Detectar colunas ocultas
+        self.hidden_columns = get_hidden_columns(self.upload.file.path)
+
+        # Carregar planilha completa
+        df_full = pd.read_excel(self.upload.file.path, header=None)
+
+        # Filtrar apenas colunas visíveis
+        if self.hidden_columns:
+            visible_columns = [i for i in range(len(df_full.columns)) if i not in self.hidden_columns]
+            self.df = df_full.iloc[:, visible_columns]
+        else:
+            self.df = df_full
+
         return self.df
 
     def get_preview(self, num_rows: int = 20) -> Dict[str, Any]:

@@ -50,7 +50,32 @@ class SpreadsheetUploadViewSet(viewsets.ModelViewSet):
     def _create_from_file(self, file):
         """Cria upload a partir de arquivo enviado"""
         try:
-            df = pd.read_excel(file, header=None)
+            # Salvar arquivo temporariamente para detectar colunas ocultas
+            from django.core.files.uploadedfile import InMemoryUploadedFile
+            import tempfile
+            import os
+
+            # Se for arquivo em memória, salvar temporariamente
+            if isinstance(file, InMemoryUploadedFile):
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp_file:
+                    for chunk in file.chunks():
+                        tmp_file.write(chunk)
+                    tmp_path = tmp_file.name
+
+                # Resetar ponteiro do arquivo
+                file.seek(0)
+
+                # Carregar e filtrar colunas ocultas
+                df_full = pd.read_excel(tmp_path, header=None)
+                df, column_mapping = remove_hidden_columns(df_full, tmp_path)
+
+                # Remover arquivo temporário
+                os.unlink(tmp_path)
+            else:
+                # Arquivo já salvo em disco
+                df_full = pd.read_excel(file, header=None)
+                df, column_mapping = remove_hidden_columns(df_full, file.temporary_file_path())
+
             total_rows, total_columns = df.shape
 
             upload = SpreadsheetUpload.objects.create(

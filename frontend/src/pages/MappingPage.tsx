@@ -65,9 +65,7 @@ export function MappingPage() {
         const mapping = await columnMappingAPI.getMappingByUpload(Number(uploadId))
         if (mapping) {
           // Converter price_columns do backend (index, name) para o formato do hook (name, column)
-          // LIMITAR A 3 COLUNAS DE PREÇO
           const priceColumnsConverted = (mapping.price_columns || [])
-            .slice(0, 3)
             .map((pc: any) => ({
               name: pc.name,
               column: pc.index,
@@ -109,8 +107,7 @@ export function MappingPage() {
       setLocalError(null)
 
       // Converter price_columns para o formato do backend (index, name)
-      // LIMITAR A 3 COLUNAS DE PREÇO
-      const priceColumnsBackend = priceColumns.slice(0, 3).map(pc => ({
+      const priceColumnsBackend = priceColumns.map(pc => ({
         index: pc.column,
         name: pc.name,
       }))
@@ -153,8 +150,7 @@ export function MappingPage() {
       setLocalError(null)
 
       // Converter price_columns para o formato do backend (index, name)
-      // LIMITAR A 3 COLUNAS DE PREÇO
-      const priceColumnsBackend = priceColumns.slice(0, 3).map(pc => ({
+      const priceColumnsBackend = priceColumns.map(pc => ({
         index: pc.column,
         name: pc.name,
       }))
@@ -217,7 +213,7 @@ export function MappingPage() {
     }
 
     // Map columns in order: Code, Description, Dimensions, Cubic, Weight, NCM
-    // Then remaining columns as prices (max 3)
+    // Then remaining columns as prices
     let idx = 0
     const newMapping: any = {
       code: idx < columns.length ? columns[idx++] : null,
@@ -235,9 +231,9 @@ export function MappingPage() {
       return
     }
 
-    // Add price columns from remaining columns (máximo 3)
+    // Add price columns from remaining columns
     let priceIdx = 1
-    while (idx < columns.length && priceIdx <= 3) {
+    while (idx < columns.length) {
       newMapping.priceColumns.push({
         name: `Preço ${priceIdx}`,
         column: columns[idx],
