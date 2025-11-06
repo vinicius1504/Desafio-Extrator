@@ -15,7 +15,7 @@ export interface UseUploadReturn {
   uploadedFile: File | null
 
   // Actions
-  uploadFile: (file: File) => Promise<number | null>
+  uploadFile: (file: File | null, googleSheetsUrl?: string) => Promise<number | null>
   resetUpload: () => void
   setError: (error: string | null) => void
   validateAndSetFile: (file: File) => boolean
@@ -43,8 +43,15 @@ export function useUpload(): UseUploadReturn {
     return true
   }
 
-  const uploadFile = async (file: File): Promise<number | null> => {
-    if (!validateAndSetFile(file)) {
+  const uploadFile = async (file: File | null, googleSheetsUrl?: string): Promise<number | null> => {
+    // Se for arquivo, validar
+    if (file && !validateAndSetFile(file)) {
+      return null
+    }
+
+    // Se for URL, validar minimamente
+    if (googleSheetsUrl && !googleSheetsUrl.includes('docs.google.com/spreadsheets')) {
+      setError('URL inválida do Google Sheets')
       return null
     }
 
@@ -58,7 +65,16 @@ export function useUpload(): UseUploadReturn {
         setProgress(prev => Math.min(prev + 10, 90))
       }, 200)
 
-      const response = await spreadsheetAPI.uploadFile(file)
+      let response
+      if (googleSheetsUrl) {
+        // Upload via URL do Google Sheets
+        response = await spreadsheetAPI.uploadFromGoogleSheets(googleSheetsUrl)
+      } else if (file) {
+        // Upload de arquivo tradicional
+        response = await spreadsheetAPI.uploadFile(file)
+      } else {
+        throw new Error('Nenhum arquivo ou URL fornecido')
+      }
 
       clearInterval(progressInterval)
       setProgress(100)

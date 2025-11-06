@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.renderers import JSONRenderer
 from django.http import HttpResponse
 import pandas as pd
@@ -19,28 +19,40 @@ from .serializers import (
 )
 from .services.column_mapper_service import ColumnMapperService
 from .utils.spreadsheet_detector import detect_spreadsheet_structure, remove_hidden_columns
+from .utils.google_sheets_importer import GoogleSheetsImporter
 
 
 class SpreadsheetUploadViewSet(viewsets.ModelViewSet):
     queryset = SpreadsheetUpload.objects.all()
     serializer_class = SpreadsheetUploadSerializer
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     def create(self, request, *args, **kwargs):
-        """Upload de planilha"""
+        """Upload de planilha (arquivo ou URL do Google Sheets)"""
         file = request.FILES.get('file')
-        if not file:
+        google_sheets_url = request.data.get('google_sheets_url')
+
+        # Caso 1: Upload de arquivo tradicional
+        if file:
+            return self._create_from_file(file)
+
+        # Caso 2: Importar do Google Sheets
+        elif google_sheets_url:
+            return self._create_from_google_sheets(google_sheets_url)
+
+        # Caso 3: Nenhum dos dois foi fornecido
+        else:
             return Response(
-                {'error': 'Nenhum arquivo foi enviado'},
+                {'error': 'Você deve fornecer um arquivo ou uma URL do Google Sheets'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Ler a planilha para obter informações
+    def _create_from_file(self, file):
+        """Cria upload a partir de arquivo enviado"""
         try:
             df = pd.read_excel(file, header=None)
             total_rows, total_columns = df.shape
 
-            # Criar o upload
             upload = SpreadsheetUpload.objects.create(
                 file=file,
                 original_filename=file.name,
@@ -54,6 +66,48 @@ class SpreadsheetUploadViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(
                 {'error': f'Erro ao processar arquivo: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def _create_from_google_sheets(self, url):
+        """Cria upload a partir de URL do Google Sheets"""
+        try:
+            # Validar URL
+            is_valid, error = GoogleSheetsImporter.validate_google_sheets_url(url)
+            if not is_valid:
+                return Response(
+                    {'error': error},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Importar planilha
+            content_file, filename, info = GoogleSheetsImporter.import_from_url(url)
+
+            if 'error' in info:
+                return Response(
+                    {'error': info['error']},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Criar o upload
+            upload = SpreadsheetUpload.objects.create(
+                file=content_file,
+                original_filename=filename,
+                total_rows=info['total_rows'],
+                total_columns=info['total_columns']
+            )
+
+            serializer = self.get_serializer(upload)
+            response_data = serializer.data
+            response_data['source'] = 'google_sheets'
+            response_data['spreadsheet_id'] = info['spreadsheet_id']
+            response_data['message'] = 'Planilha importada do Google Sheets com sucesso'
+
+            return Response(response_data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response(
+                {'error': f'Erro ao importar do Google Sheets: {str(e)}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 

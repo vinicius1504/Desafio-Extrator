@@ -64,18 +64,13 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 
 # Password validation
+# Simplificado para facilitar criação de usuários
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'OPTIONS': {
+            'min_length': 6,  # Mínimo de 6 caracteres
+        }
     },
 ]
 
@@ -163,3 +158,7 @@ SPECTACULAR_SETTINGS = {
         }
     },
 }
+
+# Email Configuration (Development - console backend)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@extrator.com'

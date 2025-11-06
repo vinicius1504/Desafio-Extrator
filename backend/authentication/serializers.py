@@ -158,3 +158,50 @@ class UserManagementSerializer(serializers.ModelSerializer):
             'is_admin', 'is_active', 'is_staff', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class AdminUserCreateSerializer(serializers.ModelSerializer):
+    """Serializer para criação de usuários por admin (sem confirmação de senha)"""
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+        style={'input_type': 'password'},
+        help_text='Senha do novo usuário'
+    )
+    is_admin = serializers.BooleanField(
+        required=False,
+        default=False
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            'username', 'email', 'password',
+            'first_name', 'last_name', 'is_admin'
+        ]
+
+    def validate(self, attrs):
+        """Remove password_confirm se foi enviado por engano"""
+        # Ignorar password_confirm caso o frontend envie
+        attrs.pop('password_confirm', None)
+        return attrs
+
+    def create(self, validated_data):
+        """Cria um novo usuário"""
+        is_admin = validated_data.pop('is_admin', False)
+
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password'],
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
+        )
+
+        # Definir is_admin se fornecido
+        if is_admin:
+            user.is_admin = True
+            user.save()
+
+        return user

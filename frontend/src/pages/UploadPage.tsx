@@ -1,18 +1,21 @@
 /**
  * Página de upload de planilhas - Design Moderno
+ * Suporta upload de arquivos e importação do Google Sheets
  */
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
-import { Alert } from '@/components/ui'
-import { Upload, FileSpreadsheet, CheckCircle, File, AlertCircle, Sparkles, Zap } from 'lucide-react'
+import { Alert, Button, Input } from '@/components/ui'
+import { Upload, FileSpreadsheet, CheckCircle, File, AlertCircle, Sparkles, Zap, Link as LinkIcon, X } from 'lucide-react'
 import { useUpload } from '@/hooks'
 import { FILE_VALIDATION } from '@/constants'
 
 export function UploadPage() {
   const navigate = useNavigate()
   const { uploading, progress, error, uploadedFile, uploadFile, setError } = useUpload()
+  const [showUrlInput, setShowUrlInput] = useState(false)
+  const [googleSheetsUrl, setGoogleSheetsUrl] = useState('')
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -29,6 +32,26 @@ export function UploadPage() {
     [uploadFile, navigate]
   )
 
+  const handleGoogleSheetsUpload = async () => {
+    if (!googleSheetsUrl.trim()) {
+      setError('Por favor, insira a URL do Google Sheets')
+      return
+    }
+
+    // Validar se é uma URL do Google Sheets
+    if (!googleSheetsUrl.includes('docs.google.com/spreadsheets')) {
+      setError('URL inválida. Por favor, insira um link válido do Google Sheets')
+      return
+    }
+
+    const uploadId = await uploadFile(null, googleSheetsUrl)
+
+    if (uploadId) {
+      // Navegar para página de mapeamento
+      navigate(`/mapping/${uploadId}`)
+    }
+  }
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
@@ -39,7 +62,7 @@ export function UploadPage() {
     },
     maxFiles: 1,
     maxSize: FILE_VALIDATION.MAX_FILE_SIZE,
-    disabled: uploading,
+    disabled: uploading || showUrlInput,
   })
 
   return (
@@ -63,8 +86,38 @@ export function UploadPage() {
         </Alert>
       )}
 
-      {/* Upload Area */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      {/* Toggle Buttons */}
+      <div className="flex justify-center gap-4">
+        <Button
+          variant={!showUrlInput ? 'primary' : 'outline'}
+          onClick={() => {
+            setShowUrlInput(false)
+            setGoogleSheetsUrl('')
+            setError(null)
+          }}
+          disabled={uploading}
+          className="flex items-center gap-2"
+        >
+          <Upload className="h-4 w-4" />
+          Upload de Arquivo
+        </Button>
+        <Button
+          variant={showUrlInput ? 'primary' : 'outline'}
+          onClick={() => {
+            setShowUrlInput(true)
+            setError(null)
+          }}
+          disabled={uploading}
+          className="flex items-center gap-2"
+        >
+          <LinkIcon className="h-4 w-4" />
+          Google Sheets
+        </Button>
+      </div>
+
+      {/* Upload Area or URL Input */}
+      {!showUrlInput ? (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div
           {...getRootProps()}
           className={`
@@ -147,6 +200,106 @@ export function UploadPage() {
           </div>
         </div>
       </div>
+      ) : (
+        /* Google Sheets URL Input */
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden p-8">
+          <div className="flex flex-col items-center gap-6">
+            <div className="w-24 h-24 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-full flex items-center justify-center shadow-lg">
+              <LinkIcon className="h-12 w-12 text-green-600 dark:text-green-400" />
+            </div>
+
+            <div className="space-y-3 text-center max-w-2xl">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                Importar do Google Sheets
+              </h2>
+              <p className="text-base text-gray-600 dark:text-gray-400">
+                Cole o link da sua planilha do Google Sheets abaixo
+              </p>
+              <p className="text-sm text-amber-600 dark:text-amber-400 flex items-center gap-2 justify-center">
+                <AlertCircle className="h-4 w-4" />
+                A planilha precisa estar pública ou com permissão "Qualquer pessoa com o link pode visualizar"
+              </p>
+            </div>
+
+            <div className="w-full max-w-2xl space-y-4">
+              <div className="relative">
+                <Input
+                  type="url"
+                  placeholder="https://docs.google.com/spreadsheets/d/..."
+                  value={googleSheetsUrl}
+                  onChange={(e) => setGoogleSheetsUrl(e.target.value)}
+                  disabled={uploading}
+                  className="pr-10"
+                />
+                {googleSheetsUrl && !uploading && (
+                  <button
+                    onClick={() => setGoogleSheetsUrl('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <Button
+                onClick={handleGoogleSheetsUpload}
+                disabled={uploading || !googleSheetsUrl.trim()}
+                className="w-full"
+              >
+                {uploading ? (
+                  <>
+                    <Zap className="h-4 w-4 mr-2 animate-pulse" />
+                    Importando... {progress}%
+                  </>
+                ) : (
+                  <>
+                    <LinkIcon className="h-4 w-4 mr-2" />
+                    Importar Planilha
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Progress Bar para Google Sheets */}
+            {uploading && (
+              <div className="w-full max-w-2xl">
+                <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden shadow-inner">
+                  <div
+                    className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-300 rounded-full"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Como obter o link */}
+            <div className="w-full max-w-2xl mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
+                <FileSpreadsheet className="h-4 w-4" />
+                Como obter o link do Google Sheets?
+              </h3>
+              <ol className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+                <li className="flex gap-2">
+                  <span className="font-semibold">1.</span>
+                  <span>Abra sua planilha no Google Sheets</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold">2.</span>
+                  <span>Clique em "Compartilhar" no canto superior direito</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold">3.</span>
+                  <span>Em "Acesso geral", selecione "Qualquer pessoa com o link"</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-semibold">4.</span>
+                  <span>Copie o link e cole aqui</span>
+                </li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Info Cards */}
       <div className="grid md:grid-cols-2 gap-6">

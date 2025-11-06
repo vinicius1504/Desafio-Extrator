@@ -3,10 +3,40 @@ from .models import SpreadsheetUpload, ColumnMapping, Product, ProductVariant, M
 
 
 class SpreadsheetUploadSerializer(serializers.ModelSerializer):
+    """Serializer para upload de planilhas (arquivo ou URL)"""
+    google_sheets_url = serializers.URLField(
+        write_only=True,
+        required=False,
+        allow_blank=True,
+        help_text='URL do Google Sheets (alternativa ao upload de arquivo)'
+    )
+
     class Meta:
         model = SpreadsheetUpload
-        fields = ['id', 'file', 'uploaded_at', 'original_filename', 'total_rows', 'total_columns']
-        read_only_fields = ['id', 'uploaded_at']
+        fields = ['id', 'file', 'google_sheets_url', 'uploaded_at', 'original_filename', 'total_rows', 'total_columns']
+        read_only_fields = ['id', 'uploaded_at', 'original_filename', 'total_rows', 'total_columns']
+        extra_kwargs = {
+            'file': {'required': False}
+        }
+
+    def validate(self, data):
+        """Validar que ou file ou google_sheets_url foi fornecido"""
+        file = data.get('file')
+        url = data.get('google_sheets_url')
+
+        # Se ambos foram fornecidos, priorizar o arquivo
+        if file and url:
+            # Remove URL se arquivo foi fornecido
+            data.pop('google_sheets_url', None)
+            return data
+
+        # Se nenhum foi fornecido, erro
+        if not file and not url:
+            raise serializers.ValidationError(
+                'Você deve fornecer um arquivo ou uma URL do Google Sheets'
+            )
+
+        return data
 
 
 class MappingTemplateSerializer(serializers.ModelSerializer):

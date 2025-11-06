@@ -51,10 +51,10 @@ export function Layout({ children }: LayoutProps) {
   }, [isDropdownOpen])
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header fixo - Esconder na página de login */}
       {!isLoginPage && (
-        <header className="flex-none bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
           <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
             <div className="flex items-center justify-between gap-2">
               {/* Logo - Responsive */}
@@ -161,8 +161,8 @@ export function Layout({ children }: LayoutProps) {
         </header>
       )}
 
-      {/* Conteúdo scrollável */}
-      <main className={`flex-1 ${isLoginPage ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+      {/* Conteúdo principal - flex-1 empurra o footer para baixo */}
+      <main className="flex-1">
         {isLoginPage ? (
           children
         ) : (
@@ -172,11 +172,11 @@ export function Layout({ children }: LayoutProps) {
         )}
       </main>
 
-      {/* Footer fixo - Esconder na página de login */}
+      {/* Footer no final do conteúdo - Esconder na página de login */}
       {!isLoginPage && (
-        <footer className="flex-none bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-          <div className="container mx-auto px-4 py-6">
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+        <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
+          <div className="container mx-auto px-4 py-4">
+            <p className="text-center text-xs text-gray-600 dark:text-gray-400">
               © 2024 Extrator de Planilhas. Desenvolvido com React + TypeScript + Tailwind CSS
             </p>
           </div>

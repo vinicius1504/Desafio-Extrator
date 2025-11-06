@@ -17,9 +17,11 @@ from .serializers import (
     RegisterSerializer,
     LoginSerializer,
     ChangePasswordSerializer,
-    UserManagementSerializer
+    UserManagementSerializer,
+    AdminUserCreateSerializer
 )
 from .permissions import IsAdminUser
+from .email_utils import send_credentials_email
 
 
 class RegisterView(generics.CreateAPIView):
@@ -200,18 +202,49 @@ class UserCreateView(generics.CreateAPIView):
     POST /api/auth/users/create/
     """
     queryset = User.objects.all()
-    serializer_class = RegisterSerializer
+    serializer_class = AdminUserCreateSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        # Salvar senha antes de criar o usuário (será criptografada)
+        plain_password = serializer.validated_data['password']
+
         user = serializer.save()
 
-        return Response({
+        # Enviar email com as credenciais
+        email_sent = False
+        print(f"📧 Tentando enviar email para: {user.email}")
+        print(f"📧 Username: {user.username}")
+        print(f"📧 Password: {plain_password}")
+        try:
+            email_sent = send_credentials_email(
+                user_email=user.email,
+                username=user.username,
+                password=plain_password,
+                created_by=request.user.get_full_name() or request.user.username
+            )
+            print(f"📧 Email enviado com sucesso: {email_sent}")
+        except Exception as e:
+            print(f"❌ ERRO ao enviar email: {str(e)}")
+            import traceback
+            traceback.print_exc()
+
+        response_data = {
             'user': UserManagementSerializer(user).data,
             'message': 'Usuário criado com sucesso'
-        }, status=status.HTTP_201_CREATED)
+        }
+
+        if email_sent:
+            response_data['email_sent'] = True
+            response_data['message'] += '. Email com credenciais enviado para o usuário.'
+        else:
+            response_data['email_sent'] = False
+            response_data['message'] += '. Não foi possível enviar o email com as credenciais.'
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):

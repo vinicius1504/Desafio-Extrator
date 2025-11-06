@@ -74,6 +74,13 @@ export const spreadsheetAPI = {
     return response.data
   },
 
+  uploadFromGoogleSheets: async (url: string): Promise<SpreadsheetUpload> => {
+    const response = await apiClient.post<SpreadsheetUpload>('/uploads/', {
+      google_sheets_url: url
+    })
+    return response.data
+  },
+
   getUploads: async (): Promise<SpreadsheetUpload[]> => {
     const response = await apiClient.get<SpreadsheetUpload[]>('/uploads/')
     return response.data
