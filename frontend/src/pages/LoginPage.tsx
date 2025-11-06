@@ -40,15 +40,15 @@ export function LoginPage() {
   }
 
   return (
-    <div className="h-full w-full flex flex-col lg:flex-row">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row">
       {/* Left Side - Illustration & Info */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 dark:from-blue-800 dark:via-blue-900 dark:to-gray-900 flex-col justify-center items-center text-white overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 dark:from-blue-800 dark:via-blue-900 dark:to-gray-900 flex-col justify-center items-center text-white overflow-hidden p-8">
         {/* Decorative circles */}
         <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/5 rounded-full -mb-32 -mr-32"></div>
         <div className="absolute top-0 left-0 w-48 h-48 bg-white/5 rounded-full -mt-24 -ml-24"></div>
 
         {/* Content */}
-        <div className="relative z-10 px-12 py-8 w-full max-w-md space-y-6">
+        <div className="relative z-10 w-full max-w-lg space-y-6">
           {/* Illustration */}
           <div className="flex justify-center mb-6">
             <div className="relative w-72 h-56">
@@ -80,35 +80,35 @@ export function LoginPage() {
           </div>
 
           {/* Text Content */}
-          <div className="text-center space-y-5">
-            <div className="space-y-3">
-              <h1 className="text-4xl font-bold tracking-tight">
+          <div className="text-center space-y-4">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tight">
                 Extrator de Planilhas
               </h1>
-              <p className="text-blue-100 dark:text-blue-200 text-lg leading-relaxed">
+              <p className="text-blue-100 dark:text-blue-200 text-base leading-relaxed">
                 Gerencie e processe suas planilhas Excel de forma simples e eficiente
               </p>
             </div>
 
             {/* Features */}
-            <div className="grid grid-cols-3 gap-6 pt-6 border-t-2 border-white/30">
+            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/20">
               <div className="flex flex-col items-center gap-2">
-                <div className="bg-white/10 p-4 rounded-xl hover:bg-white/20 transition-all duration-300">
-                  <Upload className="w-7 h-7" />
+                <div className="bg-white/10 p-3 rounded-lg hover:bg-white/20 transition-all duration-300">
+                  <Upload className="w-6 h-6" />
                 </div>
-                <span className="text-sm font-medium text-blue-100">Upload</span>
+                <span className="text-xs font-medium text-blue-100">Upload</span>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <div className="bg-white/10 p-4 rounded-xl hover:bg-white/20 transition-all duration-300">
-                  <BarChart3 className="w-7 h-7" />
+                <div className="bg-white/10 p-3 rounded-lg hover:bg-white/20 transition-all duration-300">
+                  <BarChart3 className="w-6 h-6" />
                 </div>
-                <span className="text-sm font-medium text-blue-100">Análise</span>
+                <span className="text-xs font-medium text-blue-100">Análise</span>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <div className="bg-white/10 p-4 rounded-xl hover:bg-white/20 transition-all duration-300">
-                  <Download className="w-7 h-7" />
+                <div className="bg-white/10 p-3 rounded-lg hover:bg-white/20 transition-all duration-300">
+                  <Download className="w-6 h-6" />
                 </div>
-                <span className="text-sm font-medium text-blue-100">Exportar</span>
+                <span className="text-xs font-medium text-blue-100">Exportar</span>
               </div>
             </div>
           </div>
@@ -116,7 +116,7 @@ export function LoginPage() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex-1 lg:w-1/2 relative bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6 lg:p-12">
+      <div className="flex-1 lg:w-1/2 relative bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6 min-h-screen">
         {/* Theme Toggle - Top Right Corner */}
         <div className="absolute top-6 right-6">
           <button
@@ -134,19 +134,19 @@ export function LoginPage() {
 
         {/* Login Form */}
         <div className="w-full max-w-md">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-200 dark:border-gray-700">
             {/* Header */}
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                 Olá!
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Faça login para continuar
               </p>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Error Alert */}
               {error && (
                 <Alert type="error" title="Erro" closable onClose={() => setError(null)}>
@@ -212,7 +212,7 @@ export function LoginPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full h-12 font-semibold bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 mt-6"
+                className="w-full h-11 font-semibold bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 mt-2 text-sm"
                 disabled={loading}
               >
                 {loading ? (
