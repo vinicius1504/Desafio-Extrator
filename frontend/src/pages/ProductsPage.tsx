@@ -3,8 +3,9 @@
  */
 
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, CardContent, Button, Alert } from '@/components/ui'
+import { Card, CardContent, Button, Alert, AnimatedPage } from '@/components/ui'
 import { Download, Package, Sparkles } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useProducts, useExport } from '@/hooks'
 import {
   ProductCard,
@@ -69,21 +70,26 @@ export function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto">
+      <AnimatedPage className="max-w-7xl mx-auto">
         <div className="text-center py-12">
           <div className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400">
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
             <p className="font-medium">Carregando produtos...</p>
           </div>
         </div>
-      </div>
+      </AnimatedPage>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-4">
+    <AnimatedPage className="max-w-7xl mx-auto space-y-4">
       {/* Header Compacto e Moderno */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-4">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-4"
+      >
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
@@ -112,7 +118,7 @@ export function ProductsPage() {
             <span className="sm:hidden">Exportar</span>
           </Button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Error Alert */}
       {error && (
@@ -123,18 +129,29 @@ export function ProductsPage() {
 
       {/* Search and Selection */}
       {products.length > 0 && (
-        <div className="space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="space-y-3"
+        >
           <ProductSearch value={searchTerm} onChange={setSearchTerm} />
           {selectedProducts.size > 0 && (
-            <ProductSelection
-              visibleCount={visibleProducts.length}
-              selectedCount={selectedProducts.size}
-              allVisibleSelected={allVisibleSelected}
-              onToggleSelectAll={() => selectAll(visibleProducts)}
-              onClearSelection={clearSelection}
-            />
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              <ProductSelection
+                visibleCount={visibleProducts.length}
+                selectedCount={selectedProducts.size}
+                allVisibleSelected={allVisibleSelected}
+                onToggleSelectAll={() => selectAll(visibleProducts)}
+                onClearSelection={clearSelection}
+              />
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       )}
 
       {/* Products List */}
@@ -182,25 +199,37 @@ export function ProductsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {visibleProducts.map((product) => (
-            <ProductCard
+          {visibleProducts.map((product, index) => (
+            <motion.div
               key={product.id}
-              product={product}
-              isExpanded={isExpanded(product.id)}
-              isSelected={selectedProducts.has(product.id)}
-              isExporting={exportingProductId === product.id}
-              onToggleExpand={() => toggleExpand(product.id)}
-              onToggleSelect={() => toggleSelectProduct(product.id)}
-              onExport={(format) => onProductExport(product, format)}
-            />
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+            >
+              <ProductCard
+                product={product}
+                isExpanded={isExpanded(product.id)}
+                isSelected={selectedProducts.has(product.id)}
+                isExporting={exportingProductId === product.id}
+                onToggleExpand={() => toggleExpand(product.id)}
+                onToggleSelect={() => toggleSelectProduct(product.id)}
+                onExport={(format) => onProductExport(product, format)}
+              />
+            </motion.div>
           ))}
 
           {/* Load More Button */}
           {hasMore && (
-            <LoadMoreButton
-              remainingCount={filteredProducts.length - displayLimit}
-              onClick={loadMore}
-            />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+            >
+              <LoadMoreButton
+                remainingCount={filteredProducts.length - displayLimit}
+                onClick={loadMore}
+              />
+            </motion.div>
           )}
         </div>
       )}
@@ -212,6 +241,6 @@ export function ProductsPage() {
         onClose={closeExportModal}
         onExport={onModalExport}
       />
-    </div>
+    </AnimatedPage>
   )
 }
