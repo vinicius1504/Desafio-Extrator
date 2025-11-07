@@ -81,7 +81,6 @@ export function useUpload(): UseUploadReturn {
 
       return response.id
     } catch (err) {
-      console.error('Erro ao fazer upload:', err)
       setError(err instanceof Error ? err.message : ERROR_MESSAGES.UPLOAD_FAILED)
       return null
     } finally {

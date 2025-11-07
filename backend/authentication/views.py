@@ -216,9 +216,6 @@ class UserCreateView(generics.CreateAPIView):
 
         # Enviar email com as credenciais
         email_sent = False
-        print(f"📧 Tentando enviar email para: {user.email}")
-        print(f"📧 Username: {user.username}")
-        print(f"📧 Password: {plain_password}")
         try:
             email_sent = send_credentials_email(
                 user_email=user.email,
@@ -226,11 +223,8 @@ class UserCreateView(generics.CreateAPIView):
                 password=plain_password,
                 created_by=request.user.get_full_name() or request.user.username
             )
-            print(f"📧 Email enviado com sucesso: {email_sent}")
         except Exception as e:
-            print(f"❌ ERRO ao enviar email: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            pass
 
         response_data = {
             'user': UserManagementSerializer(user).data,

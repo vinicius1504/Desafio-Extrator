@@ -40,7 +40,6 @@ export function usePreview(uploadId?: number): UsePreviewReturn {
       const data = await spreadsheetAPI.getPreview(uploadId)
       setPreview(data)
     } catch (err) {
-      console.error('Erro ao carregar preview:', err)
       setError(err instanceof Error ? err.message : 'Erro ao carregar preview')
       setPreview(null)
     } finally {

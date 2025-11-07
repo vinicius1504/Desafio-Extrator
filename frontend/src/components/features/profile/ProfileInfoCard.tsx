@@ -49,7 +49,6 @@ export function ProfileInfoCard() {
       setSuccessMessage('Perfil atualizado com sucesso!')
       setIsEditing(false)
     } catch (err: any) {
-      console.error('Erro ao atualizar perfil:', err)
     }
   }
 

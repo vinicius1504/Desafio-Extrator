@@ -173,16 +173,6 @@ Equipe Sistema Extrator de Planilhas
 Este é um email automático, por favor não responda.
     """
 
-    print(f"📧 [email_utils] Preparando envio de email...")
-    print(f"📧 [email_utils] Para: {user_email}")
-    print(f"📧 [email_utils] De: {settings.DEFAULT_FROM_EMAIL}")
-    print(f"📧 [email_utils] Subject: {subject}")
-    print(f"📧 [email_utils] Backend: {settings.EMAIL_BACKEND}")
-    print(f"📧 [email_utils] Host: {settings.EMAIL_HOST}")
-    print(f"📧 [email_utils] Port: {settings.EMAIL_PORT}")
-    print(f"📧 [email_utils] Use TLS: {settings.EMAIL_USE_TLS}")
-    print(f"📧 [email_utils] Host User: {settings.EMAIL_HOST_USER}")
-
     try:
         result = send_mail(
             subject=subject,
@@ -192,12 +182,8 @@ Este é um email automático, por favor não responda.
             html_message=html_message,
             fail_silently=False,
         )
-        print(f"✅ [email_utils] Email enviado! Result: {result}")
         return True
     except Exception as e:
-        print(f"❌ [email_utils] ERRO ao enviar email: {str(e)}")
-        import traceback
-        traceback.print_exc()
         return False
 
 
@@ -280,5 +266,4 @@ Este link expira em 24 horas.
         )
         return True
     except Exception as e:
-        print(f"Erro ao enviar email: {str(e)}")
         return False

@@ -125,7 +125,6 @@ export function UserForm({ isOpen, onClose, user, onSuccess }: UserFormProps) {
       onSuccess?.()
       onClose()
     } catch (err) {
-      console.error('Erro ao salvar usuário:', err)
     }
   }
 

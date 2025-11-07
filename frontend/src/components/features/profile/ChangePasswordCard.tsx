@@ -60,7 +60,6 @@ export function ChangePasswordCard() {
         new_password_confirm: '',
       })
     } catch (err: any) {
-      console.error('Erro ao alterar senha:', err)
     }
   }
 

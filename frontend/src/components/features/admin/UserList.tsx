@@ -33,7 +33,6 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
           setHasLoaded(true)
         })
         .catch((err) => {
-          console.error('Erro ao carregar usuários:', err)
         })
     }
   }, [isAdmin])
@@ -41,7 +40,6 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
   // Atualizar quando refreshTrigger mudar (após criar/editar/deletar)
   useEffect(() => {
     if (refreshTrigger !== undefined && refreshTrigger > 0 && isAdmin && hasLoaded) {
-      getUsers().catch(console.error)
     }
   }, [refreshTrigger])
 
@@ -50,7 +48,6 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
     try {
       await getUsers()
     } catch (err) {
-      console.error('Erro ao atualizar usuários:', err)
     } finally {
       setRefreshing(false)
     }
@@ -62,7 +59,6 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
       await toggleUserActive(user.id)
       // NÃO atualizar automaticamente - deixar o estado interno do hook atualizar
     } catch (err) {
-      console.error('Erro ao alterar status:', err)
     } finally {
       setActionLoading(null)
     }

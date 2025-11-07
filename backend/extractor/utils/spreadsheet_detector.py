@@ -176,7 +176,6 @@ def get_hidden_columns(file_path: str) -> List[int]:
 
     except Exception as e:
         # Se der erro, retornar lista vazia (não filtrar nada)
-        print(f"Erro ao detectar colunas ocultas: {e}")
         return []
 
 

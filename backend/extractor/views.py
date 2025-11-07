@@ -639,12 +639,10 @@ class SpreadsheetUploadViewSet(viewsets.ModelViewSet):
 
                         writer.writerow(row)
                     except Exception as e:
-                        print(f"Erro ao processar variante {variant.id}: {str(e)}")
                         continue
 
             return response
         except Exception as e:
-            print(f"Erro geral no _export_csv: {str(e)}")
             raise
 
     def _export_xml(self, variants, filename):
@@ -671,7 +669,6 @@ class SpreadsheetUploadViewSet(viewsets.ModelViewSet):
                             price_elem.set('type', key)
                             price_elem.text = str(value) if value is not None else ''
                 except Exception as e:
-                    print(f"Erro ao processar variante {variant.id} no XML: {str(e)}")
                     continue
 
             # Formatar XML
@@ -681,7 +678,6 @@ class SpreadsheetUploadViewSet(viewsets.ModelViewSet):
             response['Content-Disposition'] = f'attachment; filename="{filename}_export.xml"'
             return response
         except Exception as e:
-            print(f"Erro geral no _export_xml: {str(e)}")
             raise
 
     def _export_json_data(self, variants):

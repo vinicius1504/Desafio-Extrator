@@ -115,7 +115,6 @@ export function useProducts(options: UseProductsOptions = {}): UseProductsReturn
 
       setProducts(productsArray)
     } catch (err) {
-      console.error('Erro ao carregar produtos:', err)
       setError(err instanceof Error ? err.message : ERROR_MESSAGES.LOAD_PRODUCTS_FAILED)
       setProducts([])
     } finally {

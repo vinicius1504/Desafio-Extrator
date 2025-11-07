@@ -129,7 +129,6 @@ export function MappingPage() {
       // Navegar para próxima etapa
       navigate(`/products/${uploadId}`)
     } catch (err) {
-      console.error('Erro ao salvar mapeamento:', err)
       setLocalError(err instanceof Error ? err.message : 'Erro ao salvar mapeamento')
     } finally {
       setSaving(false)
@@ -176,7 +175,6 @@ export function MappingPage() {
       // 3. Navegar para produtos
       navigate(`/products/${uploadId}`)
     } catch (err) {
-      console.error('Erro ao processar:', err)
       setLocalError(err instanceof Error ? err.message : 'Erro ao processar planilha')
     } finally {
       setProcessing(false)

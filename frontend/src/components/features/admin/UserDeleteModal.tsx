@@ -30,7 +30,6 @@ export function UserDeleteModal({ isOpen, onClose, user, onSuccess }: UserDelete
       onClose()
       setConfirmText('')
     } catch (err) {
-      console.error('Erro ao deletar usuário:', err)
     }
   }
 

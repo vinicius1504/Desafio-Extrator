@@ -1,331 +1,201 @@
-# Frontend - Extrator de Planilhas
+# ⚛️ Frontend - Sistema Extrator de Planilhas
 
-Interface web para upload, configuração e visualização de dados extraídos de planilhas Excel.
+Interface moderna construída com React, TypeScript e Vite para gerenciamento e processamento de planilhas Excel.
 
-## Status
+## 📋 Índice
 
-✅ **COMPLETO E FUNCIONAL** - Frontend implementado com React + TypeScript + Tailwind CSS!
+- [Tecnologias](#tecnologias)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Componentes](#componentes)
+- [Hooks Customizados](#hooks-customizados)
+- [Contextos](#contextos)
+- [Páginas](#páginas)
+- [Rotas](#rotas)
+- [Configuração](#configuração)
 
-## Tecnologias Utilizadas
+---
 
-Stack escolhida e implementada:
+## 🛠 Tecnologias
 
-- **React 18** - Biblioteca UI
-- **TypeScript** - Tipagem estática
-- **Vite** - Build tool e dev server
-- **Tailwind CSS** - Framework CSS utility-first
-- **React Router** - Roteamento
-- **Zustand** - State management
-- **Axios** - HTTP client
-- **React Dropzone** - Upload de arquivos
+- **React 18.3** - Biblioteca UI
+- **TypeScript 5.6** - Tipagem estática
+- **Vite 5.4** - Build tool ultrarrápido
+- **React Router 7.1** - Roteamento
+- **Tailwind CSS 3.4** - Estilização
+- **Framer Motion 11.15** - Animações
 - **Lucide React** - Ícones
+- **Axios** - HTTP client
+- **Shadcn/ui** - Componentes base
 
-## 🚀 Como Rodar o Projeto
-
-### 1. Instalar Dependências
-```bash
-cd frontend
-npm install
-```
-
-### 2. Configurar Variáveis de Ambiente
-Copie o arquivo `.env.example` para `.env`:
-```bash
-cp .env.example .env
-```
-
-### 3. Iniciar o Servidor de Desenvolvimento
-```bash
-npm run dev
-```
-
-O frontend estará disponível em: `http://localhost:3000`
-
-### 4. Build para Produção
-```bash
-npm run build
-npm run preview
-```
-
-## Documentação da API
-
-Consulte `/docs/FRONTEND_API_GUIDE.md` para:
-- Endpoints disponíveis
-- Exemplos de requisições
-- Modelos de dados (TypeScript)
-- Fluxo completo de integração
-- Exemplos em React e Vue
-
-## ✅ Funcionalidades Implementadas
-
-### Página 1: Upload de Planilha (`/upload`)
-- ✅ Input de arquivo com suporte a .xlsx, .xls, .csv, .ods
-- ✅ Drag and drop funcional
-- ✅ Preview de informações do arquivo selecionado
-- ✅ Loading state durante upload
-- ✅ Redirecionamento automático para mapeamento
-
-### Página 2: Mapeamento de Colunas (`/mapping/:uploadId`)
-- ✅ Tabela com preview das primeiras 10 linhas
-- ✅ Selects para mapear cada coluna:
-  - Código
-  - Descrição
-  - Dimensões
-  - Cubagem
-  - Peso
-  - NCM
-- ✅ Múltiplas colunas de preço (adicionar/remover dinamicamente)
-- ✅ Input para definir linha inicial de dados
-- ✅ Salvar e processar planilha
-
-### Página 3: Visualização de Produtos (`/products/:uploadId`)
-- ✅ Lista de produtos processados
-- ✅ Expandir/colapsar variantes de cada produto
-- ✅ Modal de exportação com 3 formatos (CSV, XML, JSON)
-- ✅ Download automático de arquivos exportados
-- ✅ Contadores e estatísticas
+---
 
 ## 📁 Estrutura do Projeto
 
 ```
 frontend/
+├── public/                 # Arquivos estáticos
+│   └── vite.svg
+│
 ├── src/
-│   ├── components/
-│   │   ├── ui/                     # Componentes UI reutilizáveis
-│   │   │   ├── Button.tsx
-│   │   │   ├── Card.tsx
-│   │   │   ├── Input.tsx
-│   │   │   ├── Select.tsx
-│   │   │   ├── Alert.tsx
-│   │   │   ├── Modal.tsx
-│   │   │   ├── Table.tsx
-│   │   │   └── index.ts
-│   │   └── layout/
-│   │       └── Layout.tsx          # Layout principal
-│   ├── lib/
-│   │   └── api.ts                  # Cliente API com Axios
-│   ├── hooks/                      # Custom hooks (futuro)
-│   ├── pages/
-│   │   ├── HomePage.tsx            # Página inicial
-│   │   ├── UploadPage.tsx          # Upload de planilhas
-│   │   ├── MappingPage.tsx         # Mapeamento de colunas
-│   │   └── ProductsPage.tsx        # Visualização de produtos
-│   ├── store/
-│   │   └── spreadsheetStore.ts     # Zustand store
-│   ├── styles/
-│   │   └── index.css               # Estilos globais e Tailwind
-│   ├── types/
-│   │   └── index.ts                # TypeScript types
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── vite-env.d.ts
-├── public/
-├── .env.example
+│   ├── components/        # Componentes reutilizáveis
+│   │   ├── common/       # Componentes comuns
+│   │   │   ├── ErrorBoundary.tsx
+│   │   │   ├── PrivateRoute.tsx
+│   │   │   └── AdminRoute.tsx
+│   │   │
+│   │   ├── features/     # Componentes por feature
+│   │   │   ├── admin/   # Gerenciamento de usuários
+│   │   │   ├── mapping/ # Mapeamento de colunas
+│   │   │   ├── products/ # Listagem de produtos
+│   │   │   ├── profile/ # Perfil do usuário
+│   │   │   └── upload/  # Upload de arquivos
+│   │   │
+│   │   ├── layout/      # Layout e navegação
+│   │   │   ├── AppLayout.tsx
+│   │   │   ├── Header.tsx
+│   │   │   └── Navbar.tsx
+│   │   │
+│   │   └── ui/          # Componentes UI base (shadcn)
+│   │       ├── Button.tsx
+│   │       ├── Input.tsx
+│   │       ├── Card.tsx
+│   │       ├── Alert.tsx
+│   │       ├── AnimatedPage.tsx
+│   │       ├── AnimatedCard.tsx
+│   │       └── ...
+│   │
+│   ├── contexts/         # Context API
+│   │   └── AuthContext.tsx
+│   │
+│   ├── hooks/           # Hooks customizados
+│   │   ├── useProducts.ts
+│   │   ├── useExport.ts
+│   │   ├── useUpload.ts
+│   │   ├── usePreview.ts
+│   │   └── useColumnMapping.ts
+│   │
+│   ├── lib/             # Configurações e utilitários
+│   │   ├── api.ts       # Cliente Axios
+│   │   └── utils.ts     # Funções utilitárias
+│   │
+│   ├── pages/           # Páginas da aplicação
+│   │   ├── HomePage.tsx
+│   │   ├── LoginPage.tsx
+│   │   ├── UploadPage.tsx
+│   │   ├── MappingPage.tsx
+│   │   ├── ProductsPage.tsx
+│   │   ├── ProfilePage.tsx
+│   │   └── AdminUsersPage.tsx
+│   │
+│   ├── types/           # Definições de tipos TypeScript
+│   │   └── index.ts
+│   │
+│   ├── App.tsx          # Componente raiz
+│   ├── main.tsx         # Entry point
+│   └── index.css        # Estilos globais (Tailwind)
+│
+├── index.html
 ├── package.json
-├── tailwind.config.js
 ├── tsconfig.json
 ├── vite.config.ts
-└── README.md
+└── tailwind.config.js
 ```
 
-## API Base URL
+---
 
-```javascript
-const API_BASE_URL = 'http://localhost:8000/api';
+
+## 🛣 Rotas
+
+```tsx
+/                    # Home (pública)
+/login               # Login (pública)
+/upload              # Upload (privada)
+/mapping/:uploadId   # Mapeamento (privada)
+/products/:uploadId  # Produtos (privada)
+/profile             # Perfil (privada)
+/admin/users         # Admin Usuários (admin)
 ```
 
-## Exemplo de Serviço API
+## 🚀 Scripts
 
-```javascript
-// src/services/api.js
-const API_BASE = 'http://localhost:8000/api';
+```bash
+# Desenvolvimento
+npm run dev
 
-export const spreadsheetAPI = {
-  // Upload de planilha
-  upload: async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
+# Build produção
+npm run build
 
-    const response = await fetch(`${API_BASE}/spreadsheets/`, {
-      method: 'POST',
-      body: formData
-    });
+# Preview do build
+npm run preview
 
-    return response.json();
-  },
+# Lint
+npm run lint
 
-  // Preview
-  preview: async (uploadId) => {
-    const response = await fetch(`${API_BASE}/spreadsheets/${uploadId}/preview/`);
-    return response.json();
-  },
-
-  // Configurar mapeamento
-  configureMapping: async (uploadId, mapping) => {
-    const response = await fetch(`${API_BASE}/column-mappings/create_or_update/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ upload: uploadId, ...mapping })
-    });
-    return response.json();
-  },
-
-  // Processar
-  process: async (uploadId) => {
-    const response = await fetch(`${API_BASE}/spreadsheets/${uploadId}/process/`, {
-      method: 'POST'
-    });
-    return response.json();
-  },
-
-  // Listar produtos
-  getProducts: async (uploadId) => {
-    const response = await fetch(`${API_BASE}/products/?upload_id=${uploadId}`);
-    return response.json();
-  },
-
-  // Exportar
-  export: async (uploadId, format) => {
-    const response = await fetch(
-      `${API_BASE}/spreadsheets/${uploadId}/export/?format=${format}`
-    );
-
-    if (format === 'json') {
-      return response.json();
-    } else {
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `export.${format}`;
-      a.click();
-    }
-  }
-};
+# Type check
+npm run type-check
 ```
 
-## Fluxo da Aplicação
+---
 
-```
-1. Upload
-   ↓
-2. Preview → Configurar Mapeamento
-   ↓
-3. Processar
-   ↓
-4. Visualizar Resultados → Exportar
-```
+## 🎯 Boas Práticas
 
-## Estados da Aplicação
+### **Componentes**
 
-```javascript
-const [currentStep, setCurrentStep] = useState('upload'); // 'upload' | 'mapping' | 'results'
-const [uploadId, setUploadId] = useState(null);
-const [preview, setPreview] = useState(null);
-const [products, setProducts] = useState([]);
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState(null);
-```
+- ✅ Um componente por arquivo
+- ✅ Props tipadas com TypeScript
+- ✅ Usar componentes funcionais com hooks
+- ✅ Memoizar componentes pesados (`React.memo`)
+- ✅ Lazy loading para rotas (`React.lazy`)
 
-## Bibliotecas Úteis
+### **Estado**
 
-### UI Components
-- **Material-UI**: `npm install @mui/material @emotion/react @emotion/styled`
-- **Ant Design**: `npm install antd`
-- **Chakra UI**: `npm install @chakra-ui/react @emotion/react @emotion/styled framer-motion`
+- ✅ Context API para estado global
+- ✅ Hooks customizados para lógica reutilizável
+- ✅ Estados locais para UI
 
-### Tabelas
-- **TanStack Table**: `npm install @tanstack/react-table`
-- **AG Grid**: `npm install ag-grid-react`
+### **Estilos**
 
-### Gerenciamento de Estado
-- **Zustand**: `npm install zustand`
-- **Redux Toolkit**: `npm install @reduxjs/toolkit react-redux`
+- ✅ Tailwind CSS para estilização
+- ✅ Classes utilitárias first
+- ✅ Componentes do design system
+- ✅ Dark mode support
 
-### Upload de Arquivos
-- **React Dropzone**: `npm install react-dropzone`
+### **Performance**
 
-### HTTP Client
-- **Axios**: `npm install axios`
-- **React Query**: `npm install @tanstack/react-query`
+- ✅ Code splitting por rota
+- ✅ Lazy loading de imagens
+- ✅ Debounce em buscas
+- ✅ Paginação (load more)
 
-## 🎯 Fluxo da Aplicação Implementado
+---
 
-```
-1. Página Inicial (/)
-   ↓
-2. Upload de Planilha (/upload)
-   ↓ (após upload bem-sucedido)
-3. Mapeamento de Colunas (/mapping/:uploadId)
-   - Visualizar preview
-   - Configurar mapeamento
-   - Salvar e processar
-   ↓
-4. Visualização de Produtos (/products/:uploadId)
-   - Ver produtos e variantes
-   - Exportar em JSON, CSV ou XML
+## 🧪 Testes
+
+```bash
+# Testes unitários (futuro)
+npm run test
+
+# Coverage
+npm run test:coverage
+
+# E2E (futuro)
+npm run test:e2e
 ```
 
-## 🎨 Componentes UI Criados
+## 🤝 Contribuindo
 
-Todos os componentes foram desenvolvidos com Tailwind CSS e TypeScript:
+1. Fork o projeto
+2. Crie uma branch (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'Add nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
+5. Abra um Pull Request
 
-- **Button** - Botão reutilizável com variantes (primary, secondary, outline, ghost) e loading state
-- **Card** - Card flexível com header, title e content
-- **Input** - Input com label, validação e helper text
-- **Select** - Select customizado com validação
-- **Alert** - Alertas com tipos (info, success, warning, error) e fechável
-- **Modal** - Modal com backdrop, animações e responsivo
-- **Table** - Tabela configurável com sorting, alignment e renderização customizada
+---
 
-## 🔄 Integração com Backend
+## 📝 Licença
 
-O frontend está totalmente integrado com a API do backend Django:
+Este projeto é privado e proprietário.
 
-- ✅ Upload de arquivos
-- ✅ Preview de planilhas
-- ✅ Criação/atualização de mapeamento
-- ✅ Listagem de produtos
-- ✅ Exportação em múltiplos formatos
+---
 
-## 🎨 Customização
-
-### Cores (Tailwind)
-As cores primárias podem ser ajustadas em `tailwind.config.js`:
-
-```javascript
-colors: {
-  primary: {
-    50: '#f0f9ff',
-    500: '#0ea5e9',  // Azul principal
-    600: '#0284c7',
-    700: '#0369a1',
-  }
-}
-```
-
-### Animações
-Animações customizadas adicionadas:
-- `animate-fadeIn` - Fade in suave
-- `animate-slideIn` - Slide in de cima para baixo
-- `animate-scaleIn` - Scale in
-
-## 🧪 Próximas Melhorias Opcionais
-
-- [ ] Adicionar testes (Jest, React Testing Library)
-- [ ] Breadcrumbs para navegação
-- [ ] Toast notifications
-- [ ] Modo escuro
-- [ ] Filtros e busca avançada
-- [ ] Paginação para grandes volumes
-- [ ] Histórico de uploads
-
-## Documentação Adicional
-
-- `/docs/FRONTEND_API_GUIDE.md` - Guia completo de integração com a API
-- `/docs/TECHNICAL_REFERENCE.md` - Referência técnica do projeto
-- Backend README: `/backend/README.md`
-
-## Dúvidas?
-
-Consulte a documentação da API no Swagger: http://localhost:8000/api/docs/
+**Desenvolvido com ❤️ usando React + TypeScript**

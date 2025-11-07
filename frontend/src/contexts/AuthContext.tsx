@@ -47,7 +47,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(null)
         }
       } catch (error) {
-        console.error('Erro ao verificar autenticação:', error)
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
         localStorage.removeItem('user')
@@ -72,7 +71,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           await logout()
         }
       } catch (error) {
-        console.error('Erro ao verificar sessão:', error)
         await logout()
       }
     }, 5 * 60 * 1000) // 5 minutos
@@ -102,7 +100,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         await authAPI.logout(refreshToken)
       }
     } catch (error) {
-      console.error('Erro ao fazer logout:', error)
     } finally {
       // Limpar tudo
       localStorage.removeItem('access_token')

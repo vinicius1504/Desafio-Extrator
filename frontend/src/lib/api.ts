@@ -172,7 +172,6 @@ export const productsAPI = {
       // Se for um erro 500, tentar ler a resposta do blob
       if (error.response?.data instanceof Blob) {
         const text = await error.response.data.text()
-        console.error('Erro do servidor (500):', text)
         try {
           const errorData = JSON.parse(text)
           throw new Error(errorData.error || 'Erro ao exportar dados')

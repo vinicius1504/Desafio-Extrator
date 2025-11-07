@@ -75,7 +75,6 @@ export function useExport(options: UseExportOptions = {}): UseExportReturn {
 
       closeExportModal()
     } catch (err) {
-      console.error('Erro ao exportar todos os produtos:', err)
       setError(err instanceof Error ? err.message : ERROR_MESSAGES.EXPORT_FAILED)
     } finally {
       setExporting(false)
@@ -97,7 +96,6 @@ export function useExport(options: UseExportOptions = {}): UseExportReturn {
 
       closeExportModal()
     } catch (err) {
-      console.error('Erro ao exportar produtos selecionados:', err)
       setError(err instanceof Error ? err.message : ERROR_MESSAGES.EXPORT_FAILED)
     } finally {
       setExporting(false)
@@ -117,7 +115,6 @@ export function useExport(options: UseExportOptions = {}): UseExportReturn {
       const filename = generateExportFilename(`produto`, format, product.id)
       downloadBlob(blob, filename)
     } catch (err) {
-      console.error('Erro ao exportar produto:', err)
       setError(err instanceof Error ? err.message : ERROR_MESSAGES.EXPORT_FAILED)
     } finally {
       setExportingProductId(null)
