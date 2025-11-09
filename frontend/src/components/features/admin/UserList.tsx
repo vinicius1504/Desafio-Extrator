@@ -1,9 +1,8 @@
 /**
- * Lista de usuários com ações (apenas admin)
+ * Lista de usuários com ações (apenas admin) - Design Minimalista
  */
 
 import { useState, useEffect } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Table, type TableColumn } from '@/components/ui/Table'
 import { Alert } from '@/components/ui/Alert'
@@ -40,8 +39,9 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
   // Atualizar quando refreshTrigger mudar (após criar/editar/deletar)
   useEffect(() => {
     if (refreshTrigger !== undefined && refreshTrigger > 0 && isAdmin && hasLoaded) {
+      getUsers()
     }
-  }, [refreshTrigger])
+  }, [refreshTrigger, isAdmin, hasLoaded])
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -69,11 +69,11 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
       key: 'username',
       header: 'Username',
       render: (value, user) => (
-        <div className="flex items-center space-x-2">
-          <span className="font-medium">{value}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-light text-gray-900 dark:text-gray-100">{value}</span>
           {user.is_admin && (
             <span title="Administrador">
-              <Shield className="h-4 w-4 text-purple-500" />
+              <Shield className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             </span>
           )}
         </div>
@@ -88,7 +88,7 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
       header: 'Nome',
       render: (_, user) => {
         const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim()
-        return fullName || <span className="text-gray-400 italic">Não informado</span>
+        return fullName || <span className="text-gray-400 dark:text-gray-600 italic font-light">Não informado</span>
       },
     },
     {
@@ -97,13 +97,13 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
       align: 'center',
       render: (value) =>
         value ? (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-            <CheckCircle className="h-3 w-3 mr-1" />
+          <span className="inline-flex items-center gap-1 px-3 py-1 border border-gray-300 dark:border-gray-700 rounded-sm text-xs font-light text-gray-900 dark:text-gray-100">
+            <CheckCircle className="h-3 w-3" />
             Ativo
           </span>
         ) : (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
-            <XCircle className="h-3 w-3 mr-1" />
+          <span className="inline-flex items-center gap-1 px-3 py-1 border border-gray-300 dark:border-gray-700 rounded-sm text-xs font-light text-gray-600 dark:text-gray-400">
+            <XCircle className="h-3 w-3" />
             Inativo
           </span>
         ),
@@ -112,7 +112,7 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
       key: 'created_at',
       header: 'Criado em',
       render: (value) => (
-        <div className="flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex items-center gap-2 text-sm font-light text-gray-600 dark:text-gray-400">
           <Clock className="h-3 w-3" />
           <span>{format(new Date(value), 'dd/MM/yyyy HH:mm')}</span>
         </div>
@@ -123,13 +123,14 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
       header: 'Ações',
       align: 'center',
       render: (_, user) => (
-        <div className="flex items-center justify-center space-x-2">
+        <div className="flex items-center justify-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => onEditUser(user)}
             disabled={actionLoading === user.id}
             title="Editar usuário"
+            className="border border-gray-300 dark:border-gray-700 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-sm h-8 w-8 p-0"
           >
             <Edit2 className="h-4 w-4" />
           </Button>
@@ -140,11 +141,7 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
             onClick={() => handleToggleActive(user)}
             disabled={actionLoading === user.id}
             title={user.is_active ? 'Desativar usuário' : 'Ativar usuário'}
-            className={
-              user.is_active
-                ? 'text-red-600 hover:text-red-700 dark:text-red-400'
-                : 'text-green-600 hover:text-green-700 dark:text-green-400'
-            }
+            className="border border-gray-300 dark:border-gray-700 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-sm h-8 w-8 p-0"
           >
             {user.is_active ? (
               <XCircle className="h-4 w-4" />
@@ -159,7 +156,7 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
             onClick={() => onDeleteUser(user)}
             disabled={actionLoading === user.id}
             title="Deletar usuário"
-            className="text-red-600 hover:text-red-700 dark:text-red-400"
+            className="border border-gray-300 dark:border-gray-700 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-sm h-8 w-8 p-0"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -169,38 +166,45 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
   ]
 
   return (
-    <Card>
-      <CardHeader>
+    <div className="border border-gray-200 dark:border-gray-800 rounded-sm overflow-hidden">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between">
-          <CardTitle>Gerenciar Usuários</CardTitle>
-          <div className="flex items-center gap-2">
+          <h3 className="text-lg font-light text-gray-900 dark:text-gray-100">
+            Gerenciar Usuários
+          </h3>
+          <div className="flex items-center gap-3">
             <Button
               onClick={handleRefresh}
               size="sm"
               variant="outline"
               disabled={refreshing || loading}
               title="Atualizar lista de usuários"
+              className="border border-gray-300 dark:border-gray-700 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-sm h-10 px-4"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
               Atualizar
             </Button>
-            <Button onClick={onCreateUser} size="sm">
+            <Button
+              onClick={onCreateUser}
+              size="sm"
+              className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 h-10 px-4 rounded-sm"
+            >
               <UserPlus className="h-4 w-4 mr-2" />
               Criar Usuário
             </Button>
           </div>
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent>
+      <div className="p-6">
         {error && (
-          <Alert type="error" className="mb-4">
+          <Alert type="error" className="mb-6">
             {error}
           </Alert>
         )}
 
         {loading && !hasLoaded ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-12 text-gray-600 dark:text-gray-400 font-light">
             Carregando usuários...
           </div>
         ) : (
@@ -211,7 +215,7 @@ export function UserList({ onCreateUser, onEditUser, onDeleteUser, refreshTrigge
             emptyMessage="Nenhum usuário encontrado"
           />
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

@@ -1,9 +1,8 @@
 /**
- * Card para alterar senha do usuário
+ * Card para alterar senha do usuário - Design Minimalista
  */
 
 import { useState } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
@@ -68,125 +67,131 @@ export function ChangePasswordCard() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Alterar Senha</CardTitle>
-      </CardHeader>
+    <div className="border border-gray-200 dark:border-gray-800 rounded-sm overflow-hidden">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+        <h3 className="text-lg font-light text-gray-900 dark:text-gray-100">
+          Alterar Senha
+        </h3>
+      </div>
 
-      <CardContent>
+      <div className="p-6">
         {successMessage && (
-          <Alert type="success" className="mb-4">
-            {successMessage}
-          </Alert>
+          <div className="mb-6 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-sm p-4">
+            <p className="text-sm text-gray-900 dark:text-gray-100 font-light">{successMessage}</p>
+          </div>
         )}
 
         {(error || validationError) && (
-          <Alert type="error" className="mb-4">
+          <Alert type="error" className="mb-6">
             {error || validationError}
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-light text-gray-900 dark:text-gray-100 mb-2">
               Senha Atual
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-gray-400 dark:text-gray-600" />
               </div>
               <Input
                 type={showPasswords.old ? 'text' : 'password'}
                 value={formData.old_password}
                 onChange={(e) => setFormData({ ...formData, old_password: e.target.value })}
-                className="pl-10 pr-10"
+                className="pl-12 pr-12 border-gray-300 dark:border-gray-700 rounded-sm h-12 font-light"
                 placeholder="Digite sua senha atual"
                 required
               />
               <button
                 type="button"
                 onClick={() => togglePasswordVisibility('old')}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center"
               >
                 {showPasswords.old ? (
-                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                  <EyeOff className="h-5 w-5 text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-gray-100 transition-colors" />
                 ) : (
-                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                  <Eye className="h-5 w-5 text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-gray-100 transition-colors" />
                 )}
               </button>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-light text-gray-900 dark:text-gray-100 mb-2">
               Nova Senha
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-gray-400 dark:text-gray-600" />
               </div>
               <Input
                 type={showPasswords.new ? 'text' : 'password'}
                 value={formData.new_password}
                 onChange={(e) => setFormData({ ...formData, new_password: e.target.value })}
-                className="pl-10 pr-10"
+                className="pl-12 pr-12 border-gray-300 dark:border-gray-700 rounded-sm h-12 font-light"
                 placeholder="Digite sua nova senha"
                 required
               />
               <button
                 type="button"
                 onClick={() => togglePasswordVisibility('new')}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center"
               >
                 {showPasswords.new ? (
-                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                  <EyeOff className="h-5 w-5 text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-gray-100 transition-colors" />
                 ) : (
-                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                  <Eye className="h-5 w-5 text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-gray-100 transition-colors" />
                 )}
               </button>
             </div>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-2 text-xs text-gray-600 dark:text-gray-400 font-light">
               Mínimo de 6 caracteres
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-light text-gray-900 dark:text-gray-100 mb-2">
               Confirmar Nova Senha
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-gray-400 dark:text-gray-600" />
               </div>
               <Input
                 type={showPasswords.confirm ? 'text' : 'password'}
                 value={formData.new_password_confirm}
                 onChange={(e) => setFormData({ ...formData, new_password_confirm: e.target.value })}
-                className="pl-10 pr-10"
+                className="pl-12 pr-12 border-gray-300 dark:border-gray-700 rounded-sm h-12 font-light"
                 placeholder="Confirme sua nova senha"
                 required
               />
               <button
                 type="button"
                 onClick={() => togglePasswordVisibility('confirm')}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center"
               >
                 {showPasswords.confirm ? (
-                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                  <EyeOff className="h-5 w-5 text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-gray-100 transition-colors" />
                 ) : (
-                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                  <Eye className="h-5 w-5 text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-gray-100 transition-colors" />
                 )}
               </button>
             </div>
           </div>
 
           <div className="pt-4">
-            <Button type="submit" disabled={loading}>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 h-12 px-6 rounded-sm"
+            >
               {loading ? 'Alterando...' : 'Alterar Senha'}
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

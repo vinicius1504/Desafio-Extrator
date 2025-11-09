@@ -58,6 +58,7 @@ export interface ProductVariant {
   weight?: number | null
   ncm?: string | null
   prices: Record<string, number>
+  fields?: Record<string, any>  // NOVO: Campos dinâmicos detectados pela IA
   raw_data: Record<string, any>
   row_number: number
   created_at: string
@@ -66,7 +67,14 @@ export interface ProductVariant {
 export interface Product {
   id: number
   description?: string | null
+  code?: string | null
+  cubic?: string | null
+  weight?: string | null
+  ncm?: string | null
+  image?: string | null
   variants: ProductVariant[]
+  company_name?: string | null
+  upload_id?: number
   created_at: string
 }
 

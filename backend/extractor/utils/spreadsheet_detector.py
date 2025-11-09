@@ -1,10 +1,11 @@
 """
 Detector automático de estrutura de planilhas
 Identifica linha de headers e início dos dados
+Suporta múltiplas abas/sheets
 """
 import pandas as pd
 import openpyxl
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, Dict
 
 
 def find_header_row(df: pd.DataFrame, max_search_rows: int = 20) -> Optional[int]:
@@ -215,3 +216,70 @@ def remove_hidden_columns(df: pd.DataFrame, file_path: str) -> Tuple[pd.DataFram
     df_filtered = df.iloc[:, visible_columns]
 
     return df_filtered, mapping
+
+
+def get_sheet_names(file_path: str) -> List[Dict[str, any]]:
+    """
+    Retorna lista de abas disponíveis na planilha Excel
+
+    Args:
+        file_path: Caminho do arquivo Excel
+
+    Returns:
+        Lista de dicts com informações das abas: [{'index': 0, 'name': 'Sheet1', 'rows': 100}, ...]
+    """
+    try:
+        # Tentar com openpyxl primeiro (melhor para .xlsx)
+        wb = openpyxl.load_workbook(file_path, read_only=True, data_only=True)
+        sheets = []
+
+        for idx, sheet_name in enumerate(wb.sheetnames):
+            ws = wb[sheet_name]
+            # Contar linhas (aproximado, pega max_row)
+            rows = ws.max_row if ws.max_row else 0
+            sheets.append({
+                'index': idx,
+                'name': sheet_name,
+                'rows': rows
+            })
+
+        wb.close()
+        return sheets
+
+    except Exception as e:
+        # Fallback para pandas (funciona com .xls também)
+        try:
+            xls = pd.ExcelFile(file_path)
+            sheets = []
+
+            for idx, sheet_name in enumerate(xls.sheet_names):
+                # Ler apenas para contar linhas (otimizado)
+                df = pd.read_excel(xls, sheet_name=sheet_name, header=None, nrows=0)
+                # Reabrir para pegar número total de linhas
+                df_full = pd.read_excel(xls, sheet_name=sheet_name, header=None)
+
+                sheets.append({
+                    'index': idx,
+                    'name': sheet_name,
+                    'rows': len(df_full)
+                })
+
+            return sheets
+
+        except Exception:
+            # Se falhar, retorna lista vazia
+            return []
+
+
+def read_specific_sheet(file_path: str, sheet_name_or_index: any) -> pd.DataFrame:
+    """
+    Lê uma aba específica da planilha
+
+    Args:
+        file_path: Caminho do arquivo
+        sheet_name_or_index: Nome da aba (str) ou índice (int)
+
+    Returns:
+        DataFrame da aba especificada
+    """
+    return pd.read_excel(file_path, sheet_name=sheet_name_or_index, header=None)

@@ -67,24 +67,43 @@ export function ProductCard({
                 </div>
               </div>
 
-              {/* Quick Info */}
-              <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
-                {mainVariant.weight && <span>Peso: {mainVariant.weight}kg</span>}
-                {mainVariant.cubic && <span>Cubagem: {mainVariant.cubic}m³</span>}
-                {mainVariant.ncm && <span>NCM: {mainVariant.ncm}</span>}
-              </div>
-
-              {/* Prices */}
-              {mainVariant.prices && Object.keys(mainVariant.prices).length > 0 && (
+              {/* Quick Info - DINÂMICO */}
+              {mainVariant.fields && Object.keys(mainVariant.fields).length > 0 ? (
+                /* SE TEM CAMPOS DINÂMICOS, mostra tudo dinamicamente */
                 <div className="mt-3 flex flex-wrap gap-3">
-                  {Object.entries(mainVariant.prices).map(([name, price]) => (
-                    <div key={name} className="px-3 py-1 bg-primary-50 dark:bg-primary-900 rounded-full">
-                      <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
-                        {name}: R$ {formatPrice(price)}
-                      </span>
-                    </div>
-                  ))}
+                  {Object.entries(mainVariant.fields).map(([key, value]) => {
+                    if (!value || value === '') return null
+                    const displayValue = typeof value === 'number' ? value.toLocaleString('pt-BR') : value
+                    return (
+                      <div key={key} className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{key}</span>
+                        <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">{displayValue}</div>
+                      </div>
+                    )
+                  })}
                 </div>
+              ) : (
+                /* FALLBACK: Campos fixos tradicionais */
+                <>
+                  <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    {mainVariant.weight && <span>Peso: {mainVariant.weight}kg</span>}
+                    {mainVariant.cubic && <span>Cubagem: {mainVariant.cubic}m³</span>}
+                    {mainVariant.ncm && <span>NCM: {mainVariant.ncm}</span>}
+                  </div>
+
+                  {/* Prices */}
+                  {mainVariant.prices && Object.keys(mainVariant.prices).length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      {Object.entries(mainVariant.prices).map(([name, price]) => (
+                        <div key={name} className="px-3 py-1 bg-primary-50 dark:bg-primary-900 rounded-full">
+                          <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
+                            {name}: R$ {formatPrice(price)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 

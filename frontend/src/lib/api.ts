@@ -91,8 +91,9 @@ export const spreadsheetAPI = {
     return response.data
   },
 
-  getPreview: async (uploadId: number): Promise<SpreadsheetPreview> => {
-    const response = await apiClient.get<SpreadsheetPreview>(`/uploads/${uploadId}/preview/`)
+  getPreview: async (uploadId: number, sheetIndex?: number): Promise<SpreadsheetPreview> => {
+    const params = sheetIndex !== undefined ? `?sheet=${sheetIndex}` : ''
+    const response = await apiClient.get<SpreadsheetPreview>(`/uploads/${uploadId}/preview/${params}`)
     return response.data
   },
 
@@ -113,14 +114,57 @@ export const spreadsheetAPI = {
     return response.data
   },
 
+  suggestMapping: async (uploadId: number, sheetIndex?: number): Promise<{
+    success: boolean
+    message: string
+    analysis_method: 'gemini_ai' | 'traditional'
+    suggestions: {
+      code_column: number | null
+      description_column: number | null
+      dimensions_column: number | null
+      cubic_column: number | null
+      weight_column: number | null
+      ncm_column: number | null
+      price_columns: Array<{index: number, name: string, confidence: number}>
+      data_start_row: number
+    }
+    confidence_scores: Record<string, {score: number, confidence: string}>
+    headers: string[]
+    column_headers: Record<string, string>
+  }> => {
+    const params = sheetIndex !== undefined ? `?sheet=${sheetIndex}` : ''
+    const response = await apiClient.get(`/uploads/${uploadId}/suggest_mapping/${params}`)
+    return response.data
+  },
+
+  getSheets: async (uploadId: number): Promise<{
+    success: boolean
+    sheets: Array<{index: number, name: string, rows: number}>
+    total_sheets: number
+  }> => {
+    const response = await apiClient.get(`/uploads/${uploadId}/sheets/`)
+    return response.data
+  },
+
   deleteUpload: async (uploadId: number): Promise<void> => {
     await apiClient.delete(`/uploads/${uploadId}/`)
+  },
+
+  // Alias para compatibilidade
+  process: async (uploadId: number): Promise<any> => {
+    const response = await apiClient.post(`/uploads/${uploadId}/process/`)
+    return response.data
   },
 }
 
 // Column Mapping API
 export const columnMappingAPI = {
   createMapping: async (mappingData: MappingData): Promise<ColumnMapping> => {
+    const response = await apiClient.post<ColumnMapping>('/mappings/create_or_update/', mappingData)
+    return response.data
+  },
+
+  createOrUpdate: async (mappingData: MappingData): Promise<ColumnMapping> => {
     const response = await apiClient.post<ColumnMapping>('/mappings/create_or_update/', mappingData)
     return response.data
   },
@@ -297,5 +341,113 @@ export const adminAPI = {
   toggleUserActive: async (userId: number): Promise<{ message: string; user: User }> => {
     const response = await apiClient.post(`/auth/users/${userId}/toggle-active/`)
     return response.data
+  },
+}
+
+// Export History API
+export interface ExportHistory {
+  id: number
+  upload: {
+    id: number
+    filename: string
+    uploaded_at: string
+  }
+  exported_at: string
+  products_count: number
+  variants_count: number
+  company_name?: string | null
+}
+
+export interface ProductDetail extends Product {
+  image_url?: string | null
+  company_name?: string | null
+}
+
+export const exportHistoryAPI = {
+  getExportHistory: async (): Promise<ExportHistory[]> => {
+    const response = await apiClient.get<ExportHistory[]>('/uploads/export-history/')
+    return response.data
+  },
+
+  getExportProducts: async (uploadId: number): Promise<ProductDetail[]> => {
+    const response = await apiClient.get<ProductDetail[]>(`/products/?upload_id=${uploadId}`)
+    return response.data
+  },
+
+  getProduct: async (productId: number): Promise<ProductDetail> => {
+    const response = await apiClient.get<ProductDetail>(`/products/${productId}/`)
+    return response.data
+  },
+
+  updateProduct: async (productId: number, data: Partial<ProductDetail>): Promise<ProductDetail> => {
+    const response = await apiClient.patch<ProductDetail>(`/products/${productId}/`, data)
+    return response.data
+  },
+
+  updateProductImage: async (productId: number, imageFile: File): Promise<ProductDetail> => {
+    const formData = new FormData()
+    formData.append('image', imageFile)
+
+    const response = await apiClient.patch<ProductDetail>(`/products/${productId}/`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    return response.data
+  },
+
+  linkCompany: async (uploadId: number, companyName: string): Promise<{ message: string }> => {
+    const response = await apiClient.post(`/uploads/${uploadId}/link-company/`, {
+      company_name: companyName
+    })
+    return response.data
+  },
+
+  updateProductsFromSpreadsheet: async (uploadId: number, file: File): Promise<{
+    updated: number
+    unchanged: number
+    new: number
+    message: string
+  }> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await apiClient.post(`/uploads/${uploadId}/update-products/`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    return response.data
+  },
+
+  getGlobalCatalog: async (params?: {
+    company?: string
+    start_date?: string
+    end_date?: string
+    search?: string
+    page?: number
+    page_size?: number
+  }): Promise<{
+    results: ProductDetail[]
+    count: number
+    page: number
+    page_size: number
+    total_pages: number
+  }> => {
+    const queryParams = new URLSearchParams()
+
+    if (params?.company) queryParams.append('company', params.company)
+    if (params?.start_date) queryParams.append('start_date', params.start_date)
+    if (params?.end_date) queryParams.append('end_date', params.end_date)
+    if (params?.search) queryParams.append('search', params.search)
+    if (params?.page) queryParams.append('page', params.page.toString())
+    if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
+
+    const response = await apiClient.get(`/uploads/global-catalog/?${queryParams.toString()}`)
+    return response.data
+  },
+
+  getUniqueCompanies: async (): Promise<string[]> => {
+    const response = await apiClient.get<ExportHistory[]>('/uploads/export-history/')
+    const companies = response.data
+      .map(item => item.company_name)
+      .filter((name): name is string => name != null && name !== '')
+    return Array.from(new Set(companies)).sort()
   },
 }

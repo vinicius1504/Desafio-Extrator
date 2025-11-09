@@ -1,450 +1,405 @@
 /**
- * Página de mapeamento de colunas - REFATORADA
+ * Página de mapeamento 100% DINÂMICO - Design Minimalista
+ * Gemini AI detecta TODAS as colunas automaticamente
  */
 
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, CardHeader, CardTitle, CardContent, Button, Alert, Select } from '@/components/ui'
-import { Save, ArrowRight, Sparkles, FileSpreadsheet, Zap, Grid, DollarSign, ChevronDown, ChevronUp } from 'lucide-react'
-import { useSpreadsheetStore } from '@/store/spreadsheetStore'
+import { Button, Alert } from '@/components/ui'
+import { Save, ArrowRight, Sparkles, Loader2, Trash2 } from 'lucide-react'
 import { spreadsheetAPI, columnMappingAPI } from '@/lib/api'
-import { useColumnMapping, usePreview } from '@/hooks'
-import { ColumnSelector, PriceColumnList, SpreadsheetPreview, AutoMappingForm } from '@/components/features/mapping'
-import { BASIC_COLUMN_FIELDS } from '@/constants'
-import { parseColumnInput } from '@/lib/utils'
+
+interface DynamicField {
+  index: number
+  name: string
+  type: string
+  confidence: number
+}
 
 export function MappingPage() {
   const { uploadId } = useParams<{ uploadId: string }>()
   const navigate = useNavigate()
-  const { error: storeError } = useSpreadsheetStore()
 
-  const [saving, setSaving] = useState(false)
-  const [localError, setLocalError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
-  const [showAdvanced, setShowAdvanced] = useState(false)
 
-  // Hooks customizados
-  const {
-    preview,
-    loading: loadingPreview,
-    error: previewError,
-  } = usePreview(uploadId ? Number(uploadId) : undefined)
+  // Campos dinâmicos detectados pela IA
+  const [dynamicFields, setDynamicFields] = useState<DynamicField[]>([])
+  const [dataStartRow, setDataStartRow] = useState(1)
+  const [analysisMethod, setAnalysisMethod] = useState<string>('')
 
-  const {
-    codeColumn,
-    descriptionColumn,
-    dimensionsColumn,
-    weightColumn,
-    cubicColumn,
-    ncmColumn,
-    priceColumns,
-    setCodeColumn,
-    setDescriptionColumn,
-    setDimensionsColumn,
-    setWeightColumn,
-    setCubicColumn,
-    setNcmColumn,
-    addPriceColumn,
-    removePriceColumn,
-    updatePriceColumn,
-    parseAndSetColumn,
-    isValid,
-    validationError,
-    duplicates,
-    setMapping,
-  } = useColumnMapping()
+  // Preview da planilha
+  const [preview, setPreview] = useState<any>(null)
+  const [loadingPreview, setLoadingPreview] = useState(false)
 
-  const error = localError || previewError || storeError
+  // Abas da planilha
+  const [sheets, setSheets] = useState<Array<{index: number, name: string, rows: number}>>([])
+  const [selectedSheet, setSelectedSheet] = useState<number>(0)
+  const [hasMultipleSheets, setHasMultipleSheets] = useState(false)
 
-  // Carregar mapeamento existente se houver
+  // Carregar abas disponíveis
   useEffect(() => {
     if (!uploadId) return
 
-    const loadExistingMapping = async () => {
+    const loadSheets = async () => {
       try {
-        const mapping = await columnMappingAPI.getMappingByUpload(Number(uploadId))
-        if (mapping) {
-          // Converter price_columns do backend (index, name) para o formato do hook (name, column)
-          const priceColumnsConverted = (mapping.price_columns || [])
-            .map((pc: any) => ({
-              name: pc.name,
-              column: pc.index,
-            }))
-
-          setMapping({
-            code: mapping.code_column ?? null,
-            description: mapping.description_column ?? null,
-            dimensions: mapping.dimensions_column ?? null,
-            weight: mapping.weight_column ?? null,
-            cubic: mapping.cubic_column ?? null,
-            ncm: mapping.ncm_column ?? null,
-            priceColumns: priceColumnsConverted,
-          })
+        const data = await spreadsheetAPI.getSheets(Number(uploadId))
+        if (data.sheets && data.sheets.length > 1) {
+          setSheets(data.sheets)
+          setHasMultipleSheets(true)
         }
-      } catch (err) {
-        // Sem mapeamento existente, tudo bem
+      } catch (err: any) {
+        console.error('Erro ao carregar abas:', err)
       }
     }
 
-    loadExistingMapping()
+    loadSheets()
   }, [uploadId])
 
-  const handleSaveMapping = async () => {
+  // Carregar preview (atualiza quando aba é alterada)
+  useEffect(() => {
     if (!uploadId) return
 
-    if (!isValid) {
-      setLocalError(validationError || 'Mapeamento inválido')
-      return
+    const loadPreview = async () => {
+      setLoadingPreview(true)
+      try {
+        const data = await spreadsheetAPI.getPreview(Number(uploadId), selectedSheet)
+        setPreview(data)
+      } catch (err: any) {
+        setError(err.message || 'Erro ao carregar preview')
+      } finally {
+        setLoadingPreview(false)
+      }
     }
 
-    if (duplicates.length > 0) {
-      setLocalError('Há colunas duplicadas no mapeamento')
-      return
-    }
+    loadPreview()
+  }, [uploadId, selectedSheet])
+
+  // Sugerir mapeamento automático com IA
+  const handleAISuggestion = async () => {
+    if (!uploadId) return
+
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
 
     try {
-      setSaving(true)
-      setLocalError(null)
+      const result = await spreadsheetAPI.suggestMapping(Number(uploadId), selectedSheet)
 
-      // Converter price_columns para o formato do backend (index, name)
-      const priceColumnsBackend = priceColumns.map(pc => ({
-        index: pc.column,
-        name: pc.name,
-      }))
+      if (result.dynamic_fields && result.dynamic_fields.length > 0) {
+        setDynamicFields(result.dynamic_fields)
+        setDataStartRow(result.data_start_row || 1)
+        setAnalysisMethod(result.analysis_method || 'gemini_ai')
 
-      const mappingData = {
-        upload: Number(uploadId),
-        code_column: codeColumn,
-        description_column: descriptionColumn,
-        dimensions_column: dimensionsColumn,
-        weight_column: weightColumn,
-        cubic_column: cubicColumn,
-        ncm_column: ncmColumn,
-        price_columns: priceColumnsBackend,
-        data_start_row: 1,
+        setSuccess(
+          `IA detectou ${result.dynamic_fields.length} campos automaticamente`
+        )
+      } else {
+        setError('Nenhum campo foi detectado pela IA')
       }
-
-      await columnMappingAPI.createMapping(mappingData)
-
-      // Navegar para próxima etapa
-      navigate(`/products/${uploadId}`)
-    } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'Erro ao salvar mapeamento')
+    } catch (err: any) {
+      setError(err.message || 'Erro ao analisar planilha com IA')
     } finally {
-      setSaving(false)
+      setLoading(false)
     }
   }
 
-  const handleProcessAndContinue = async () => {
-    if (!uploadId) return
-
-    // Primeiro salvar o mapeamento
-    if (!isValid) {
-      setLocalError(validationError || 'Mapeamento inválido')
+  // Salvar mapeamento
+  const handleSaveMapping = async () => {
+    if (!uploadId || dynamicFields.length === 0) {
+      setError('Execute a análise com IA primeiro')
       return
     }
 
+    setLoading(true)
+    setError(null)
+
     try {
-      setProcessing(true)
-      setLocalError(null)
-
-      // Converter price_columns para o formato do backend (index, name)
-      const priceColumnsBackend = priceColumns.map(pc => ({
-        index: pc.column,
-        name: pc.name,
-      }))
-
-      // 1. Salvar mapeamento
       const mappingData = {
         upload: Number(uploadId),
-        code_column: codeColumn,
-        description_column: descriptionColumn,
-        dimensions_column: dimensionsColumn,
-        weight_column: weightColumn,
-        cubic_column: cubicColumn,
-        ncm_column: ncmColumn,
-        price_columns: priceColumnsBackend,
-        data_start_row: 1,
+        data_start_row: dataStartRow,
+        dynamic_fields: dynamicFields,
+        sheet_index: selectedSheet
       }
 
-      await columnMappingAPI.createMapping(mappingData)
+      await columnMappingAPI.createOrUpdate(mappingData)
+      setSuccess('Mapeamento salvo com sucesso!')
 
-      // 2. Processar planilha
-      await spreadsheetAPI.processSpreadsheet(Number(uploadId))
+      setTimeout(() => {
+        handleProcess()
+      }, 1000)
+    } catch (err: any) {
+      setError(err.message || 'Erro ao salvar mapeamento')
+      setLoading(false)
+    }
+  }
 
-      // 3. Navegar para produtos
-      navigate(`/products/${uploadId}`)
-    } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'Erro ao processar planilha')
-    } finally {
+  // Processar planilha
+  const handleProcess = async () => {
+    if (!uploadId) return
+
+    setProcessing(true)
+    setError(null)
+
+    try {
+      await spreadsheetAPI.process(Number(uploadId))
+      setSuccess('Processamento concluído! Redirecionando...')
+
+      setTimeout(() => {
+        navigate(`/products/${uploadId}`)
+      }, 1500)
+    } catch (err: any) {
+      setError(err.message || 'Erro ao processar planilha')
       setProcessing(false)
     }
   }
 
-  const handleAutoMapping = (startCol: string, endCol: string, startRow: string) => {
-    const startRowNum = parseInt(startRow, 10)
-
-    // Validate row
-    if (isNaN(startRowNum) || startRowNum < 1) {
-      setLocalError('Por favor, insira uma linha inicial válida (mínimo 1)')
-      return
-    }
-
-    // Parse start and end columns
-    const startColIndex = parseColumnInput(startCol.trim())
-    const endColIndex = parseColumnInput(endCol.trim())
-
-    if (startColIndex === null || endColIndex === null) {
-      setLocalError('Por favor, insira colunas válidas (ex: A, B, C ou 0, 1, 2)')
-      return
-    }
-
-    if (startColIndex > endColIndex) {
-      setLocalError('A coluna inicial deve ser menor ou igual à coluna final')
-      return
-    }
-
-    // Build array of column indices from start to end
-    const columns: number[] = []
-    for (let i = startColIndex; i <= endColIndex; i++) {
-      columns.push(i)
-    }
-
-    // Map columns in order: Code, Description, Dimensions, Cubic, Weight, NCM
-    // Then remaining columns as prices
-    let idx = 0
-    const newMapping: any = {
-      code: idx < columns.length ? columns[idx++] : null,
-      description: idx < columns.length ? columns[idx++] : null,
-      dimensions: idx < columns.length ? columns[idx++] : null,
-      cubic: idx < columns.length ? columns[idx++] : null,
-      weight: idx < columns.length ? columns[idx++] : null,
-      ncm: idx < columns.length ? columns[idx++] : null,
-      priceColumns: [],
-    }
-
-    // Code column is required
-    if (newMapping.code === null) {
-      setLocalError('É necessário pelo menos uma coluna para o código')
-      return
-    }
-
-    // Add price columns from remaining columns
-    let priceIdx = 1
-    while (idx < columns.length) {
-      newMapping.priceColumns.push({
-        name: `Preço ${priceIdx}`,
-        column: columns[idx],
-      })
-      idx++
-      priceIdx++
-    }
-
-    // Apply the new mapping
-    setMapping(newMapping)
-    setLocalError(null)
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 0.8) return 'text-gray-900 dark:text-gray-100'
+    if (confidence >= 0.6) return 'text-gray-700 dark:text-gray-300'
+    return 'text-gray-600 dark:text-gray-400'
   }
 
-  if (loadingPreview) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400">Carregando preview...</p>
-        </div>
-      </div>
-    )
+  const handleDeleteField = (fieldIndex: number) => {
+    setDynamicFields(dynamicFields.filter(field => field.index !== fieldIndex))
+    setSuccess('Campo removido com sucesso')
+    setTimeout(() => setSuccess(null), 3000)
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      {/* Header com botão de ação */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-        <div className="text-center lg:text-left space-y-3">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800">
-            <Sparkles className="h-4 w-4 text-green-600 dark:text-green-400" />
-            <span className="text-sm font-medium text-green-700 dark:text-green-300">Configuração Inteligente</span>
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">Mapeamento de Colunas</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Configure quais colunas da planilha correspondem a cada campo do produto
-          </p>
-        </div>
-
-        {/* Botão de Processar - Posição de destaque */}
-        <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-          <Button
-            variant="outline"
-            onClick={handleSaveMapping}
-            disabled={saving || !isValid}
-            className="h-12 px-6 font-semibold shadow-md hover:shadow-lg transition-all duration-300"
-          >
-            <Save className="h-5 w-5 mr-2" />
-            {saving ? 'Salvando...' : 'Salvar'}
-          </Button>
-
-          <Button
-            onClick={handleProcessAndContinue}
-            disabled={processing || !isValid}
-            className="h-12 px-8 font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]"
-          >
-            {processing ? 'Processando...' : 'Processar e Continuar'}
-            <ArrowRight className="h-5 w-5 ml-2" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert type="error" title="Erro" closable onClose={() => setLocalError(null)}>
-          {error}
-        </Alert>
-      )}
-
-      {/* Validation Errors */}
-      {!isValid && validationError && (
-        <Alert type="warning" title="Atenção">
-          {validationError}
-        </Alert>
-      )}
-
-      {duplicates.length > 0 && (
-        <Alert type="warning" title="Atenção">
-          Há colunas duplicadas no mapeamento. Cada coluna deve ser usada apenas uma vez.
-        </Alert>
-      )}
-
-      {/* Preview e Mapeamento Rápido lado a lado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Preview */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 px-6 py-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <FileSpreadsheet className="h-5 w-5" />
-              Preview da Planilha
-            </h2>
-          </div>
-          <div className="p-6">
-            {preview ? (
-              <SpreadsheetPreview preview={preview} />
-            ) : (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">Nenhum preview disponível</div>
-            )}
-          </div>
-        </div>
-
-        {/* Auto Mapping Form */}
-        <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg border border-amber-200 dark:border-gray-700 overflow-hidden">
-          <div className="px-6 py-4 border-b border-amber-200 dark:border-gray-700">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <Zap className="h-5 w-5 text-amber-600 dark:text-amber-500" />
-              Mapeamento Rápido
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Configure automaticamente todas as colunas de uma vez
+    <div className="min-h-[calc(100vh-200px)] space-y-8">
+      {/* Header */}
+      <section className="py-8">
+        <div className="max-w-5xl mx-auto space-y-6">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl md:text-5xl font-light tracking-tight text-gray-900 dark:text-gray-100">
+              Análise <span className="font-semibold">Inteligente</span>
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 font-light max-w-2xl mx-auto">
+              A IA identifica automaticamente todas as colunas da sua planilha
             </p>
           </div>
-          <div className="p-6">
-            <AutoMappingForm onApply={handleAutoMapping} />
-          </div>
-        </div>
-      </div>
 
-      {/* Toggle Detalhes Avançados */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <button
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
-              <Grid className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div className="text-left">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                Mapeamento de Campos
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Configure código, descrição e campos adicionais
-              </p>
-            </div>
-          </div>
-          {showAdvanced ? (
-            <ChevronUp className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-          ) : (
-            <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+          {/* Alertas */}
+          {error && (
+            <Alert type="error" closable onClose={() => setError(null)}>
+              {error}
+            </Alert>
           )}
-        </button>
 
-        {showAdvanced && (
-          <div className="border-t border-gray-200 dark:border-gray-700">
-            <div className="p-6 space-y-4">
-              {BASIC_COLUMN_FIELDS.map((field) => (
-                <ColumnSelector
-                  key={field.key}
-                  label={field.label}
-                  value={
-                    field.key === 'code'
-                      ? codeColumn
-                      : field.key === 'description'
-                      ? descriptionColumn
-                      : field.key === 'dimensions'
-                      ? dimensionsColumn
-                      : field.key === 'weight'
-                      ? weightColumn
-                      : field.key === 'cubic'
-                      ? cubicColumn
-                      : ncmColumn
-                  }
-                  onInputChange={(input) => {
-                    if (field.key === 'code') parseAndSetColumn(setCodeColumn, input)
-                    else if (field.key === 'description')
-                      parseAndSetColumn(setDescriptionColumn, input)
-                    else if (field.key === 'dimensions')
-                      parseAndSetColumn(setDimensionsColumn, input)
-                    else if (field.key === 'weight') parseAndSetColumn(setWeightColumn, input)
-                    else if (field.key === 'cubic') parseAndSetColumn(setCubicColumn, input)
-                    else parseAndSetColumn(setNcmColumn, input)
+          {success && (
+            <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-sm p-4">
+              <p className="text-center text-gray-900 dark:text-gray-100 font-light">{success}</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Barra de Ações: Seletor de Abas + Botão Analisar */}
+      {dynamicFields.length === 0 && (
+        <section className="pb-8">
+          <div className="max-w-5xl mx-auto flex items-center justify-between">
+            {/* Seletor de Abas (Dropdown) */}
+            {hasMultipleSheets ? (
+              <div className="relative">
+                <select
+                  value={selectedSheet}
+                  onChange={(e) => {
+                    setSelectedSheet(Number(e.target.value))
+                    setDynamicFields([])
                   }}
-                  required={field.required}
-                  placeholder={field.placeholder}
-                  helpText={field.helpText}
-                />
+                  className="appearance-none bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-sm px-4 py-3 pr-10 font-light text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-900 dark:focus:border-gray-100 transition-colors"
+                >
+                  {sheets.map((sheet) => (
+                    <option key={sheet.index} value={sheet.index}>
+                      {sheet.name} ({sheet.rows} linhas)
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-600 dark:text-gray-400">
+                  <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                  </svg>
+                </div>
+              </div>
+            ) : (
+              <div></div>
+            )}
+
+            {/* Botão de Análise com IA */}
+            <Button
+              onClick={handleAISuggestion}
+              disabled={loading}
+              className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 h-12 px-8 rounded-sm"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Analisando...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Analisar com IA
+                </>
+              )}
+            </Button>
+          </div>
+        </section>
+      )}
+
+      {/* Campos Detectados */}
+      {dynamicFields.length > 0 && (
+        <section className="pb-16">
+          <div className="max-w-5xl mx-auto space-y-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-light text-gray-900 dark:text-gray-100">
+                Campos Detectados ({dynamicFields.length})
+              </h2>
+              <span className="text-sm font-light text-gray-600 dark:text-gray-400">
+                {analysisMethod === 'gemini_ai' ? 'Gemini AI' : 'Tradicional'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {dynamicFields.map((field) => (
+                <div
+                  key={field.index}
+                  className="group relative p-6 border border-gray-200 dark:border-gray-800 rounded-sm hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <span className="text-xs font-mono text-gray-500 dark:text-gray-400">
+                      Col {field.index}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-mono ${getConfidenceColor(field.confidence)}`}>
+                        {Math.round(field.confidence * 100)}%
+                      </span>
+                      <button
+                        onClick={() => handleDeleteField(field.index)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-sm"
+                        title="Remover campo"
+                      >
+                        <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                      </button>
+                    </div>
+                  </div>
+                  <h3 className="font-light text-lg text-gray-900 dark:text-gray-100 mb-1">
+                    {field.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-light">
+                    {field.type}
+                  </p>
+                </div>
               ))}
             </div>
+
+            {/* Ações */}
+            <div className="pt-8 flex items-center justify-between">
+              <Button
+                onClick={handleAISuggestion}
+                disabled={loading || processing}
+                className="border border-gray-300 dark:border-gray-700 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-sm"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Analisar Novamente
+              </Button>
+
+              <Button
+                onClick={handleSaveMapping}
+                disabled={loading || processing}
+                className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 h-12 px-8 rounded-sm"
+              >
+                {loading || processing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {processing ? 'Processando...' : 'Salvando...'}
+                  </>
+                ) : (
+                  <>
+                    Salvar e Processar
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
-        )}
-      </div>
+        </section>
+      )}
 
-      {/* Price Columns */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 px-6 py-4">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
-            Colunas de Preço
-          </h2>
-          <p className="text-sm text-green-100 dark:text-green-200 mt-1">
-            Adicione até 3 colunas de preço diferentes
-          </p>
-        </div>
-        <div className="p-6">
-          <PriceColumnList
-            priceColumns={priceColumns}
-            onAdd={() => addPriceColumn('', 0)}
-            onRemove={removePriceColumn}
-            onUpdateName={(index, name) =>
-              updatePriceColumn(index, name, priceColumns[index].column)
-            }
-            onUpdateColumn={(index, input) => {
-              parseAndSetColumn((col) => {
-                if (col !== null) {
-                  updatePriceColumn(index, priceColumns[index].name, col)
-                }
-              }, input)
-            }}
-          />
-        </div>
-      </div>
-
+      {/* Preview da Planilha */}
+      {(preview || loadingPreview) && (
+        <section className="pb-16">
+          <div className="max-w-5xl mx-auto space-y-6">
+            <h2 className="text-2xl font-light text-gray-900 dark:text-gray-100">
+              Preview
+            </h2>
+            <div className="border border-gray-200 dark:border-gray-800 rounded-sm overflow-hidden">
+              {loadingPreview ? (
+                // Skeleton Loading
+                <div className="animate-pulse overflow-auto max-h-[400px]">
+                  <table className="min-w-full">
+                    <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+                      <tr>
+                        {[...Array(5)].map((_, idx) => (
+                          <th
+                            key={idx}
+                            className="px-4 py-3 text-left text-xs font-mono text-gray-600 dark:text-gray-400 whitespace-nowrap"
+                          >
+                            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                      {[...Array(5)].map((_, rowIdx) => (
+                        <tr key={rowIdx}>
+                          {[...Array(5)].map((_, cellIdx) => (
+                            <td key={cellIdx} className="px-4 py-3 whitespace-nowrap">
+                              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                // Preview Real - Headers + Sample Data
+                <div className="overflow-auto max-h-[400px]">
+                  <table className="min-w-full">
+                    <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+                      <tr>
+                        {preview.headers?.map((header: string, idx: number) => (
+                          <th
+                            key={idx}
+                            className="px-4 py-3 text-left text-xs font-mono text-gray-600 dark:text-gray-400 whitespace-nowrap"
+                          >
+                            {header || `Col ${idx}`}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+                      {preview.rows?.slice(0, 10).map((row: any, rowIdx: number) => (
+                        <tr key={rowIdx} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                          {row.data?.map((cell: any, cellIdx: number) => (
+                            <td key={cellIdx} className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 font-light whitespace-nowrap">
+                              {cell !== null && cell !== undefined ? String(cell) : '-'}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

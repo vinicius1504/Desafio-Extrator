@@ -13,6 +13,7 @@ Sistema completo para upload, processamento, mapeamento e exportação de dados 
 - ✅ **Upload de Planilhas** - Suporte para Excel (.xlsx, .xls), CSV e ODS
 - ✅ **Preview Inteligente** - Visualize sua planilha antes de processar
 - ✅ **Mapeamento Visual** - Mapeie colunas de forma intuitiva
+- 🤖 **IA Gemini Integrada** - Identificação automática de colunas com Inteligência Artificial
 - ✅ **Auto-detecção** - Sistema detecta automaticamente headers e estrutura
 - ✅ **Colunas Ocultas** - Ignora automaticamente colunas ocultas no Excel
 - ✅ **Múltiplos Preços** - Suporte para quantas colunas de preço você precisar
@@ -214,13 +215,40 @@ Na tela de produtos você pode:
 
 ---
 
+## 🤖 Inteligência Artificial (Gemini)
+
+### **Nova Funcionalidade: Análise Inteligente com IA**
+
+O sistema agora conta com **Google Gemini AI** integrada para identificar automaticamente o tipo de cada coluna!
+
+**Como funciona:**
+1. 🚀 Sistema analisa os headers da planilha
+2. 🔍 IA examina uma amostra dos dados (10 linhas)
+3. 🎯 Identifica automaticamente: código, descrição, preços, peso, dimensões, NCM
+4. ✅ Retorna mapeamento inteligente com alta precisão
+
+**Vantagens:**
+- ✨ Funciona com **qualquer formato** de planilha
+- ✨ Identifica headers **customizados** ("VL_UNIT", "DESC_PROD", etc.)
+- ✨ Detecta **múltiplas colunas** de preço automaticamente
+- ✨ **Fallback automático** se IA não estiver disponível
+
+**Configuração Rápida:**
+1. Obtenha API key gratuita: [https://makersuite.google.com/app/apikey](https://makersuite.google.com/app/apikey)
+2. Adicione no `.env`: `GEMINI_API_KEY=sua-chave-aqui`
+3. Pronto! Sistema usa IA automaticamente
+
+📚 **Documentação completa:** Veja [QUICK_START_GEMINI.md](QUICK_START_GEMINI.md)
+
+---
+
 ## 💡 Dicas e Boas Práticas
 
 ### **Preparação da Planilha**
 
 ✅ **Organize os headers**
 - Deixe os nomes de colunas na primeira linha
-- Use nomes claros: "Código", "Nome", "Preço Atacado"
+- Com IA, nomes customizados também funcionam!
 - Evite células mescladas nos headers
 
 ✅ **Padronize os dados**
@@ -239,12 +267,17 @@ Na tela de produtos você pode:
 ### **Mapeamento**
 
 ✅ **Revise o auto-mapeamento**
-- Mesmo com detecção automática, sempre revise
+- Com IA, precisão é muito alta, mas sempre revise
 - Confirme se as colunas estão corretas
 
 ✅ **Preços múltiplos**
-- Nomeie claramente cada tipo de preço
-- Exemplo: "Atacado", "Varejo", "Promocional"
+- IA detecta automaticamente múltiplos preços
+- Exemplo: "Atacado", "Varejo", "VL_UNIT" todos são identificados
+
+✅ **Headers customizados**
+- Não precisa renomear colunas!
+- IA entende: "COD", "REF", "SKU", "CODIGO" como código
+- IA entende: "VL_UNIT", "PRECO", "VALOR" como preço
 
 ✅ **Dimensões**
 - Certifique-se que altura, largura e profundidade estão corretas

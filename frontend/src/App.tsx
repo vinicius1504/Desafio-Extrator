@@ -3,19 +3,21 @@ import { ErrorBoundary, RouteGuard, validateUploadId, PrivateRoute } from './com
 import { AuthProvider } from './contexts/AuthContext'
 import { Layout } from './components/layout/Layout'
 import { HomePage } from './pages/HomePage'
-import { UploadPage } from './pages/UploadPage'
 import { MappingPage } from './pages/MappingPage'
 import { ProductsPage } from './pages/ProductsPage'
 import { LoginPage } from './pages/LoginPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { ProductEditPage } from './pages/ProductEditPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { ErrorPage } from './pages/ErrorPage'
+import { Toaster } from 'sonner'
 
 function App() {
   return (
     <ErrorBoundary>
       <Router>
         <AuthProvider>
+          <Toaster position="top-right" />
           <Layout>
             <Routes>
               {/* Login - Public */}
@@ -27,16 +29,6 @@ function App() {
                 element={
                   <PrivateRoute>
                     <HomePage />
-                  </PrivateRoute>
-                }
-              />
-
-              {/* Upload - Private */}
-              <Route
-                path="/upload"
-                element={
-                  <PrivateRoute>
-                    <UploadPage />
                   </PrivateRoute>
                 }
               />
@@ -71,6 +63,16 @@ function App() {
                 element={
                   <PrivateRoute>
                     <ProfilePage />
+                  </PrivateRoute>
+                }
+              />
+
+              {/* Product Edit - Private */}
+              <Route
+                path="/products/edit/:productId"
+                element={
+                  <PrivateRoute>
+                    <ProductEditPage />
                   </PrivateRoute>
                 }
               />

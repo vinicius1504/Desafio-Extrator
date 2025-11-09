@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SpreadsheetUpload, ColumnMapping, Product, ProductVariant, MappingTemplate
+from .models import SpreadsheetUpload, ColumnMapping, Product, ProductVariant
 
 
 class SpreadsheetUploadSerializer(serializers.ModelSerializer):
@@ -13,8 +13,8 @@ class SpreadsheetUploadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SpreadsheetUpload
-        fields = ['id', 'file', 'google_sheets_url', 'uploaded_at', 'original_filename', 'total_rows', 'total_columns']
-        read_only_fields = ['id', 'uploaded_at', 'original_filename', 'total_rows', 'total_columns']
+        fields = ['id', 'file', 'google_sheets_url', 'uploaded_at', 'original_filename', 'total_rows', 'total_columns', 'company_name', 'processed', 'processed_at']
+        read_only_fields = ['id', 'uploaded_at', 'original_filename', 'total_rows', 'total_columns', 'processed', 'processed_at']
         extra_kwargs = {
             'file': {'required': False}
         }
@@ -39,78 +39,51 @@ class SpreadsheetUploadSerializer(serializers.ModelSerializer):
         return data
 
 
-class MappingTemplateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MappingTemplate
-        fields = [
-            'id', 'name', 'description', 'code_column', 'description_column',
-            'dimensions_column', 'cubic_column', 'weight_column', 'ncm_column',
-            'price_columns', 'data_start_row', 'created_at', 'updated_at'
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
-
 class ColumnMappingSerializer(serializers.ModelSerializer):
-    template_name = serializers.CharField(source='template.name', read_only=True)
-
+    """
+    Serializer para mapeamento 100% DINÂMICO
+    Apenas valida dynamic_fields detectados pela IA
+    """
     class Meta:
         model = ColumnMapping
-        fields = [
-            'id', 'upload', 'template', 'template_name', 'code_column', 'description_column',
-            'dimensions_column', 'cubic_column', 'weight_column',
-            'ncm_column', 'price_columns', 'data_start_row', 'created_at'
-        ]
-        read_only_fields = ['id', 'created_at', 'template_name']
+        fields = ['id', 'upload', 'data_start_row', 'dynamic_fields', 'sheet_index', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
     def validate(self, data):
-        """Validação completa do mapeamento"""
+        """Validação do mapeamento dinâmico"""
         upload = data.get('upload')
+        dynamic_fields = data.get('dynamic_fields', [])
 
-        # Campos obrigatórios
-        if data.get('code_column') is None:
+        # Dynamic fields deve ser uma lista
+        if not isinstance(dynamic_fields, list):
             raise serializers.ValidationError({
-                'code_column': 'O campo Código é obrigatório para o mapeamento'
+                'dynamic_fields': 'dynamic_fields deve ser uma lista'
             })
 
-        # Validar se os índices estão dentro do range da planilha
-        if upload:
+        # Validar estrutura de cada campo dinâmico
+        if upload and dynamic_fields:
             max_col = upload.total_columns - 1
-            columns_to_check = {
-                'code_column': data.get('code_column'),
-                'description_column': data.get('description_column'),
-                'dimensions_column': data.get('dimensions_column'),
-                'cubic_column': data.get('cubic_column'),
-                'weight_column': data.get('weight_column'),
-                'ncm_column': data.get('ncm_column'),
-            }
 
-            for field_name, col_index in columns_to_check.items():
-                if col_index is not None and col_index > max_col:
+            for idx, field in enumerate(dynamic_fields):
+                if not isinstance(field, dict):
                     raise serializers.ValidationError({
-                        field_name: f'Índice {col_index} excede o número de colunas da planilha ({max_col})'
+                        'dynamic_fields': f'Item {idx} deve ser um objeto'
                     })
 
-            # Validar price_columns
-            price_columns = data.get('price_columns', [])
+                # Verificar campos obrigatórios
+                if 'index' not in field or 'name' not in field:
+                    raise serializers.ValidationError({
+                        'dynamic_fields': f'Item {idx} deve conter "index" e "name"'
+                    })
 
-            if price_columns:
-                for idx, price_col in enumerate(price_columns):
-                    if not isinstance(price_col, dict):
-                        raise serializers.ValidationError({
-                            'price_columns': f'Item {idx} deve ser um objeto com "index" e "name"'
-                        })
+                # Validar índice
+                if field['index'] > max_col:
+                    raise serializers.ValidationError({
+                        'dynamic_fields': f'Índice {field["index"]} do campo "{field["name"]}" excede o número de colunas ({max_col})'
+                    })
 
-                    if 'index' not in price_col or 'name' not in price_col:
-                        raise serializers.ValidationError({
-                            'price_columns': f'Item {idx} deve conter "index" e "name"'
-                        })
-
-                    if price_col['index'] > max_col:
-                        raise serializers.ValidationError({
-                            'price_columns': f'Índice {price_col["index"]} em "{price_col["name"]}" excede o número de colunas'
-                        })
-
-            # Validar data_start_row
+        # Validar data_start_row
+        if upload:
             data_start_row = data.get('data_start_row', 0)
             if data_start_row < 0 or data_start_row >= upload.total_rows:
                 raise serializers.ValidationError({
@@ -121,35 +94,66 @@ class ColumnMappingSerializer(serializers.ModelSerializer):
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
+    """
+    Serializer para variante 100% DINÂMICA
+    Todos os dados estão em 'fields'
+    """
     class Meta:
         model = ProductVariant
-        fields = [
-            'id', 'code', 'dimensions', 'cubic', 'weight',
-            'ncm', 'prices', 'raw_data', 'row_number', 'created_at'
-        ]
+        fields = ['id', 'fields', 'raw_data', 'row_number', 'created_at']
         read_only_fields = ['id', 'created_at']
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    """
+    Serializer para produto com variantes dinâmicas
+    """
     variants = ProductVariantSerializer(many=True, read_only=True)
+    image_url = serializers.SerializerMethodField()
+    company_name = serializers.SerializerMethodField()
+    upload_id = serializers.IntegerField(source='upload.id', read_only=True)
 
     class Meta:
         model = Product
-        fields = ['id', 'description', 'variants', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = ['id', 'description', 'code', 'cubic', 'weight', 'ncm', 'image', 'image_url', 'variants', 'company_name', 'upload_id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'image_url', 'company_name', 'upload_id']
+
+    def get_image_url(self, obj):
+        """Retorna URL completa da imagem"""
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+    def get_company_name(self, obj):
+        """Retorna nome da empresa vinculada ao upload"""
+        return obj.upload.company_name if obj.upload else None
 
 
 class ProductVariantExportSerializer(serializers.ModelSerializer):
-    """Serializer para exportação flat (sem aninhamento)"""
-    product_description = serializers.SerializerMethodField()
-
+    """
+    Serializer para exportação dinâmica
+    Retorna apenas 'fields' com todos os dados
+    """
     class Meta:
         model = ProductVariant
-        fields = [
-            'code', 'product_description', 'dimensions', 'cubic',
-            'weight', 'ncm', 'prices', 'row_number'
-        ]
+        fields = ['fields', 'row_number']
 
-    def get_product_description(self, obj):
-        """Retorna descrição do produto ou None se produto não existir"""
-        return obj.product.description if obj.product else None
+
+class ExportHistorySerializer(serializers.Serializer):
+    """Serializer para histórico de exportações"""
+    id = serializers.IntegerField()
+    upload = serializers.SerializerMethodField()
+    exported_at = serializers.DateTimeField(source='processed_at')
+    products_count = serializers.IntegerField()
+    variants_count = serializers.IntegerField()
+    company_name = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+
+    def get_upload(self, obj):
+        return {
+            'id': obj.id,
+            'filename': obj.original_filename,
+            'uploaded_at': obj.uploaded_at
+        }

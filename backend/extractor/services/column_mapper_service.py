@@ -1,11 +1,22 @@
 """
 Serviço para mapeamento inteligente de colunas em planilhas
 Identifica automaticamente colunas usando fuzzy matching e análise de conteúdo
+Agora com integração de IA do Google Gemini para análise avançada
 """
 import pandas as pd
 import re
+import logging
 from difflib import SequenceMatcher
 from typing import Dict, List, Any, Optional, Tuple
+
+# Importa Gemini service (lazy import para evitar erro se não configurado)
+try:
+    from .gemini_analyzer_service import get_gemini_analyzer
+    GEMINI_AVAILABLE = True
+except ImportError:
+    GEMINI_AVAILABLE = False
+
+logger = logging.getLogger(__name__)
 
 
 class ColumnMapperService:
@@ -57,7 +68,7 @@ class ColumnMapperService:
         'dimensions': r'\d+\s*[xX×]\s*\d+',  # Dimensões: 45x45, 30 X 40, etc
     }
 
-    def __init__(self, df: pd.DataFrame, header_row: int = 0, sample_rows: int = 10):
+    def __init__(self, df: pd.DataFrame, header_row: int = 0, sample_rows: int = 10, use_ai: bool = True):
         """
         Inicializa o mapper com um DataFrame
 
@@ -65,11 +76,22 @@ class ColumnMapperService:
             df: DataFrame da planilha
             header_row: Linha que contém os headers (padrão: 0)
             sample_rows: Número de linhas a analisar para identificar padrões
+            use_ai: Se True, tenta usar Gemini AI para análise avançada (padrão: True)
         """
         self.df = df
         self.header_row = header_row
         self.sample_rows = sample_rows
+        self.use_ai = use_ai and GEMINI_AVAILABLE
         self.headers = self._extract_headers()
+
+        # Inicializa Gemini se disponível e habilitado
+        if self.use_ai:
+            self.gemini_analyzer = get_gemini_analyzer()
+            if not self.gemini_analyzer.is_enabled():
+                logger.warning("Gemini AI configurado para uso mas API Key não encontrada")
+                self.use_ai = False
+        else:
+            self.gemini_analyzer = None
 
     def _extract_headers(self) -> List[str]:
         """Extrai os headers da linha especificada"""
@@ -209,6 +231,100 @@ class ColumnMapperService:
     def suggest_mapping(self, min_confidence: float = 0.5) -> Dict[str, Any]:
         """
         Sugere mapeamento automático de colunas
+        Tenta usar Gemini AI primeiro, faz fallback para método tradicional
+
+        Args:
+            min_confidence: Confiança mínima para sugerir um mapeamento (0.0 a 1.0)
+
+        Returns:
+            Dicionário com sugestões de mapeamento e scores de confiança
+        """
+        # TENTATIVA 1: Usar Gemini AI se disponível
+        if self.use_ai and self.gemini_analyzer:
+            logger.info("Tentando análise com Gemini AI...")
+            ai_result = self._suggest_mapping_with_ai()
+
+            if ai_result:
+                logger.info("Análise com Gemini AI bem-sucedida!")
+                return ai_result
+
+            logger.warning("Análise com Gemini AI falhou. Usando método tradicional...")
+
+        # TENTATIVA 2: Método tradicional (fuzzy matching + análise de conteúdo)
+        logger.info("Usando método tradicional de análise...")
+        return self._suggest_mapping_traditional(min_confidence)
+
+    def _suggest_mapping_with_ai(self) -> Optional[Dict[str, Any]]:
+        """
+        Tenta sugerir mapeamento usando Gemini AI
+
+        Returns:
+            Dicionário com sugestões ou None se falhar
+        """
+        try:
+            # Prepara dados para análise
+            headers = [str(h) for h in self.headers]
+
+            # Extrai amostra de dados (linhas após o header)
+            data_start = self.header_row + 1
+            data_end = min(data_start + self.sample_rows, len(self.df))
+
+            sample_data = []
+            for idx in range(data_start, data_end):
+                if idx < len(self.df):
+                    row = self.df.iloc[idx].tolist()
+                    sample_data.append(row)
+
+            # Chama Gemini para análise
+            analysis_result = self.gemini_analyzer.analyze_columns(headers, sample_data)
+
+            if not analysis_result:
+                return None
+
+            # Converte resultado do Gemini para formato do sistema
+            mapping = self.gemini_analyzer.convert_to_mapping_format(analysis_result)
+
+            # Adiciona informações extras
+            mapping['headers'] = headers
+            mapping['analysis_method'] = 'gemini_ai'
+            mapping['all_columns_analysis'] = analysis_result.get('columns', [])
+
+            # Formata scores de confiança para compatibilidade
+            confidence_scores = {}
+            for field in ['code', 'description', 'dimensions', 'cubic', 'weight', 'ncm']:
+                col_idx = mapping.get(f'{field}_column')
+                if col_idx is not None:
+                    # Busca confiança nas colunas analisadas
+                    for col_detail in analysis_result.get('columns', []):
+                        if col_detail.get('index') == col_idx:
+                            confidence = col_detail.get('confidence', 0.0)
+                            confidence_scores[field] = {
+                                'score': round(confidence, 2),
+                                'confidence': self._score_to_confidence_label(confidence)
+                            }
+                            break
+
+            mapping['confidence_scores'] = confidence_scores
+            mapping['suggested_mapping'] = {
+                'code_column': mapping.get('code_column'),
+                'description_column': mapping.get('description_column'),
+                'dimensions_column': mapping.get('dimensions_column'),
+                'cubic_column': mapping.get('cubic_column'),
+                'weight_column': mapping.get('weight_column'),
+                'ncm_column': mapping.get('ncm_column'),
+                'price_columns': mapping.get('price_columns', []),
+                'data_start_row': self.header_row + 1
+            }
+
+            return mapping
+
+        except Exception as e:
+            logger.error(f"Erro ao usar Gemini AI para sugestão de mapeamento: {e}")
+            return None
+
+    def _suggest_mapping_traditional(self, min_confidence: float = 0.5) -> Dict[str, Any]:
+        """
+        Sugere mapeamento usando método tradicional (fuzzy matching + análise de conteúdo)
 
         Args:
             min_confidence: Confiança mínima para sugerir um mapeamento (0.0 a 1.0)
@@ -292,7 +408,8 @@ class ColumnMapperService:
             },
             'confidence_scores': confidence_scores,
             'all_columns_analysis': all_column_analysis,
-            'headers': self.headers
+            'headers': self.headers,
+            'analysis_method': 'traditional'
         }
 
     def _calculate_content_score(self, field: str, content_analysis: Dict) -> float:

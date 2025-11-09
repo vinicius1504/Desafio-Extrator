@@ -162,3 +162,6 @@ SPECTACULAR_SETTINGS = {
 # Email Configuration (Development - console backend)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@extrator.com'
+
+# Google Gemini AI Configuration
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', None)

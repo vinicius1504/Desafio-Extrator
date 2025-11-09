@@ -1,12 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SpreadsheetUploadViewSet, ColumnMappingViewSet, ProductViewSet, MappingTemplateViewSet
+from .views import SpreadsheetUploadViewSet, ColumnMappingViewSet, ProductViewSet
 from .download_views import ExportDownloadView
 
 router = DefaultRouter()
 router.register(r'uploads', SpreadsheetUploadViewSet, basename='upload')
 router.register(r'mappings', ColumnMappingViewSet, basename='mapping')
-router.register(r'templates', MappingTemplateViewSet, basename='template')
 router.register(r'products', ProductViewSet, basename='product')
 
 urlpatterns = [

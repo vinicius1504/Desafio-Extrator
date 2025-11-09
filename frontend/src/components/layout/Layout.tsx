@@ -1,6 +1,6 @@
 import { ReactNode, useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { FileSpreadsheet, Upload, User, ChevronDown, LogOut, Moon, Sun } from 'lucide-react'
+import { FileSpreadsheet, User, ChevronDown, LogOut, Moon, Sun } from 'lucide-react'
 import { useAuth, useDarkMode } from '@/hooks'
 
 interface LayoutProps {
@@ -54,53 +54,26 @@ export function Layout({ children }: LayoutProps) {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header fixo - Esconder na página de login */}
       {!isLoginPage && (
-        <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-            <div className="flex items-center justify-between gap-2">
-              {/* Logo - Responsive */}
-              <Link to="/" className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-xl font-bold text-primary-600 dark:text-primary-400 flex-shrink-0">
-                <FileSpreadsheet className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="hidden xs:inline">Extrator de Planilhas</span>
-                <span className="xs:hidden">Extrator</span>
+        <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex items-center justify-between">
+              {/* Logo - Minimalista */}
+              <Link to="/" className="flex items-center gap-3 text-gray-900 dark:text-gray-100 font-light text-xl tracking-tight">
+                <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-sm flex items-center justify-center">
+                  <FileSpreadsheet className="h-5 w-5 text-gray-900 dark:text-gray-100" />
+                </div>
+                <span className="hidden sm:inline">Extrator de Planilhas</span>
               </Link>
 
-              <div className="flex items-center gap-1 sm:gap-4">
-                {/* Menu - apenas se autenticado */}
-                {isAuthenticated && (
-                  <nav className="flex gap-1 sm:gap-2 md:gap-4">
-                    <Link
-                      to="/"
-                      className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 rounded-lg transition-colors ${
-                        isActive('/')
-                          ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium'
-                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <FileSpreadsheet className="h-4 w-4" />
-                      <span className="hidden sm:inline text-sm md:text-base">Início</span>
-                    </Link>
-                    <Link
-                      to="/upload"
-                      className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 rounded-lg transition-colors ${
-                        isActive('/upload')
-                          ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium'
-                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <Upload className="h-4 w-4" />
-                      <span className="hidden sm:inline text-sm md:text-base">Upload</span>
-                    </Link>
-                  </nav>
-                )}
-
+              <div className="flex items-center gap-8">
                 {/* User dropdown - apenas se autenticado */}
                 {isAuthenticated && user && (
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      className="flex items-center gap-2 text-sm font-light text-gray-900 dark:text-gray-100 transition-colors"
                     >
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-sm bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-light">
                         {user.username.charAt(0).toUpperCase()}
                       </div>
                       <span className="hidden md:inline">{user.username}</span>
@@ -109,23 +82,23 @@ export function Layout({ children }: LayoutProps) {
 
                     {/* Dropdown Menu */}
                     {isDropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                      <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-gray-900 rounded-sm border border-gray-200 dark:border-gray-800 py-2 z-50">
                         {/* Ver Perfil */}
                         <button
                           onClick={handleProfileClick}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-light text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                         >
                           <User className="h-4 w-4" />
                           <span>Ver Perfil</span>
                         </button>
 
                         {/* Divisor */}
-                        <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
+                        <div className="my-2 border-t border-gray-200 dark:border-gray-800" />
 
                         {/* Dark Mode Toggle */}
                         <button
                           onClick={handleToggleDarkMode}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-light text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                         >
                           {isDark ? (
                             <>
@@ -141,12 +114,12 @@ export function Layout({ children }: LayoutProps) {
                         </button>
 
                         {/* Divisor */}
-                        <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
+                        <div className="my-2 border-t border-gray-200 dark:border-gray-800" />
 
                         {/* Sair */}
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-light text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                         >
                           <LogOut className="h-4 w-4" />
                           <span>Sair</span>
@@ -174,10 +147,10 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Footer no final do conteúdo - Esconder na página de login */}
       {!isLoginPage && (
-        <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
-          <div className="container mx-auto px-4 py-4">
-            <p className="text-center text-xs text-gray-600 dark:text-gray-400">
-              © 2024 Extrator de Planilhas. Desenvolvido com React + TypeScript + Tailwind CSS
+        <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-auto">
+          <div className="container mx-auto px-4 py-8">
+            <p className="text-center text-sm font-light text-gray-600 dark:text-gray-400">
+              © 2024 Extrator de Planilhas
             </p>
           </div>
         </footer>

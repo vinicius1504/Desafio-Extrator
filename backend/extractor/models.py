@@ -2,43 +2,6 @@ from django.db import models
 import json
 
 
-class MappingTemplate(models.Model):
-    """Template de mapeamento reutilizável para planilhas com estrutura similar"""
-    name = models.CharField(max_length=255, unique=True, help_text="Nome do template (ex: 'Planilha Fornecedor A')")
-    description = models.TextField(blank=True, null=True, help_text="Descrição do template")
-
-    # Configurações do mapeamento
-    code_column = models.IntegerField(null=True, blank=True)
-    description_column = models.IntegerField(null=True, blank=True)
-    dimensions_column = models.IntegerField(null=True, blank=True)
-    cubic_column = models.IntegerField(null=True, blank=True)
-    weight_column = models.IntegerField(null=True, blank=True)
-    ncm_column = models.IntegerField(null=True, blank=True)
-    price_columns = models.JSONField(default=list)
-    data_start_row = models.IntegerField(default=0)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
-
-    def apply_to_mapping(self, column_mapping):
-        """Aplica este template a um ColumnMapping"""
-        column_mapping.code_column = self.code_column
-        column_mapping.description_column = self.description_column
-        column_mapping.dimensions_column = self.dimensions_column
-        column_mapping.cubic_column = self.cubic_column
-        column_mapping.weight_column = self.weight_column
-        column_mapping.ncm_column = self.ncm_column
-        column_mapping.price_columns = self.price_columns
-        column_mapping.data_start_row = self.data_start_row
-        return column_mapping
-
-
 class SpreadsheetUpload(models.Model):
     """Armazena informações sobre o upload da planilha"""
     file = models.FileField(upload_to='spreadsheets/')
@@ -46,6 +9,9 @@ class SpreadsheetUpload(models.Model):
     original_filename = models.CharField(max_length=255)
     total_rows = models.IntegerField(default=0)
     total_columns = models.IntegerField(default=0)
+    company_name = models.CharField(max_length=255, blank=True, null=True, help_text="Nome da empresa vinculada")
+    processed = models.BooleanField(default=False, help_text="Indica se a planilha foi processada")
+    processed_at = models.DateTimeField(blank=True, null=True, help_text="Data/hora do processamento")
 
     class Meta:
         ordering = ['-uploaded_at']
@@ -55,26 +21,31 @@ class SpreadsheetUpload(models.Model):
 
 
 class ColumnMapping(models.Model):
-    """Armazena o mapeamento de colunas definido pelo usuário"""
+    """
+    Armazena o mapeamento de colunas 100% DINÂMICO detectado pela IA
+    TODOS os campos são detectados automaticamente pelo Gemini AI
+    """
     upload = models.OneToOneField(SpreadsheetUpload, on_delete=models.CASCADE, related_name='column_mapping')
-    template = models.ForeignKey(MappingTemplate, on_delete=models.SET_NULL, null=True, blank=True, help_text="Template utilizado (opcional)")
-
-    # Índices das colunas (baseado em 0)
-    code_column = models.IntegerField(null=True, blank=True, help_text="Índice da coluna de código")
-    description_column = models.IntegerField(null=True, blank=True, help_text="Índice da coluna de descrição")
-    dimensions_column = models.IntegerField(null=True, blank=True, help_text="Índice da coluna de dimensões")
-    cubic_column = models.IntegerField(null=True, blank=True, help_text="Índice da coluna de cúbico")
-    weight_column = models.IntegerField(null=True, blank=True, help_text="Índice da coluna de peso")
-    ncm_column = models.IntegerField(null=True, blank=True, help_text="Índice da coluna de NCM")
-
-    # Colunas de preços (pode ter múltiplas)
-    price_columns = models.JSONField(
-        default=list,
-        help_text="Lista de objetos com índice e nome da coluna de preço, ex: [{'index': 8, 'name': 'Preço Fornecido'}]"
-    )
 
     # Linha onde começam os dados (após os headers)
     data_start_row = models.IntegerField(default=0, help_text="Linha onde começam os dados (baseado em 0)")
+
+    # ÚNICO CAMPO: Mapeamento 100% dinâmico - todos os campos detectados pela IA
+    # Estrutura: [
+    #   {'index': 0, 'name': 'Código OR', 'type': 'code', 'confidence': 0.95},
+    #   {'index': 1, 'name': 'Cor', 'type': 'attribute', 'confidence': 0.85},
+    #   {'index': 2, 'name': 'Tamanho', 'type': 'attribute', 'confidence': 0.90},
+    #   {'index': 3, 'name': 'Preço Atacado', 'type': 'price', 'confidence': 0.95}
+    # ]
+    dynamic_fields = models.JSONField(
+        default=list,
+        help_text="Lista de TODOS os campos detectados pela IA com índice, nome original, tipo e confiança"
+    )
+
+    sheet_index = models.IntegerField(
+        default=0,
+        help_text="Índice da aba/sheet da planilha (0 = primeira aba)"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -82,7 +53,7 @@ class ColumnMapping(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Mapping for {self.upload.original_filename}"
+        return f"Dynamic Mapping for {self.upload.original_filename} ({len(self.dynamic_fields)} campos)"
 
 
 class Product(models.Model):
@@ -90,6 +61,11 @@ class Product(models.Model):
     upload = models.ForeignKey(SpreadsheetUpload, on_delete=models.CASCADE, related_name='products')
 
     description = models.TextField(blank=True, null=True)
+    code = models.CharField(max_length=255, blank=True, null=True, help_text="Código do produto")
+    cubic = models.CharField(max_length=100, blank=True, null=True, help_text="Cubagem")
+    weight = models.CharField(max_length=100, blank=True, null=True, help_text="Peso")
+    ncm = models.CharField(max_length=100, blank=True, null=True, help_text="NCM")
+    image = models.ImageField(upload_to='products/', blank=True, null=True, help_text="Imagem do produto")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -100,24 +76,27 @@ class Product(models.Model):
 
 
 class ProductVariant(models.Model):
-    """Variação de produto (pode ter múltiplos códigos por produto)"""
+    """
+    Variante de produto com campos 100% DINÂMICOS
+    Todos os dados são armazenados no campo 'fields' detectado pela IA
+    """
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants', null=True, blank=True)
     upload = models.ForeignKey(SpreadsheetUpload, on_delete=models.CASCADE, related_name='variants')
 
-    # Dados básicos
-    code = models.CharField(max_length=100)
-    dimensions = models.CharField(max_length=255, blank=True, null=True)
-    cubic = models.FloatField(null=True, blank=True)
-    weight = models.FloatField(null=True, blank=True)
-    ncm = models.CharField(max_length=50, blank=True, null=True)
-
-    # Preços (armazenados como JSON para flexibilidade)
-    prices = models.JSONField(
+    # ÚNICO CAMPO DE DADOS: Campos 100% dinâmicos detectados pela IA
+    # Estrutura: {
+    #   'código or': 'ABC123',
+    #   'cor': 'Vermelho',
+    #   'tamanho': 'M',
+    #   'preço atacado': 100.50,
+    #   'estoque': 50
+    # }
+    fields = models.JSONField(
         default=dict,
-        help_text="Dicionário de preços, ex: {'Preço Fornecido': 123.45, 'Grupo 1': 150.00}"
+        help_text="TODOS os campos da linha com nomes originais da planilha"
     )
 
-    # Dados brutos da linha (para referência)
+    # Dados brutos da linha (para referência/debug)
     raw_data = models.JSONField(default=dict, help_text="Dados brutos da linha da planilha")
 
     # Linha original na planilha
@@ -129,4 +108,6 @@ class ProductVariant(models.Model):
         ordering = ['row_number']
 
     def __str__(self):
-        return f"{self.code} - {self.dimensions}"
+        # Tenta usar primeiro campo como identificador
+        first_field = next(iter(self.fields.values()), f"Variant {self.id}") if self.fields else f"Variant {self.id}"
+        return f"Row {self.row_number}: {first_field}"
